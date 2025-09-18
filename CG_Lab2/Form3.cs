@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace CG_Lab2
 {
-    public partial class Form3: Form
+    public partial class Form3: SwitchableForm
     {
         public Form3()
         {
