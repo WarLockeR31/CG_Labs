@@ -31,6 +31,7 @@
             button1 = new Button();
             button2 = new Button();
             button3 = new Button();
+            lblTask = new Label();
             SuspendLayout();
             // 
             // button1
@@ -72,17 +73,33 @@
             button3.UseVisualStyleBackColor = true;
             button3.Click += button3_Click;
             // 
+            // lblTask
+            // 
+            lblTask.Anchor = AnchorStyles.Top;
+            lblTask.AutoEllipsis = true;
+            lblTask.AutoSize = true;
+            lblTask.BorderStyle = BorderStyle.FixedSingle;
+            lblTask.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
+            lblTask.Location = new Point(336, 17);
+            lblTask.Name = "lblTask";
+            lblTask.Size = new Size(107, 27);
+            lblTask.TabIndex = 3;
+            lblTask.Text = "Задание 1";
+            lblTask.TextAlign = ContentAlignment.TopCenter;
+            // 
             // SwitchableForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(lblTask);
             Controls.Add(button3);
             Controls.Add(button2);
             Controls.Add(button1);
             Name = "SwitchableForm";
             Text = "SwitchableForm";
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -90,5 +107,6 @@
         private Button button1;
         private Button button2;
         private Button button3;
+        protected Label lblTask;
     }
 }

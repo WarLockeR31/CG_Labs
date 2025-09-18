@@ -44,6 +44,10 @@
             ((System.ComponentModel.ISupportInitialize)pb).BeginInit();
             SuspendLayout();
             // 
+            // lblTask
+            // 
+            lblTask.Text = "Задание 3";
+            // 
             // tbHue
             // 
             tbHue.Location = new Point(497, 84);
@@ -161,6 +165,7 @@
             Controls.Add(tbHue);
             Name = "Form3";
             Text = "Form3";
+            Controls.SetChildIndex(lblTask, 0);
             Controls.SetChildIndex(tbHue, 0);
             Controls.SetChildIndex(lblHue, 0);
             Controls.SetChildIndex(tbSat, 0);
