@@ -17,114 +17,167 @@
 
         private void InitializeComponent()
         {
-            this.pbOriginal = new System.Windows.Forms.PictureBox();
-            this.pbResult = new System.Windows.Forms.PictureBox();
-            this.pbNTSC = new System.Windows.Forms.PictureBox();
-            this.pbSRGB = new System.Windows.Forms.PictureBox();
-            this.btnOpen = new System.Windows.Forms.Button();
-            this.btnProcess = new System.Windows.Forms.Button();
-            this.btnSave = new System.Windows.Forms.Button();
-            this.btnReset = new System.Windows.Forms.Button();
-            ((System.ComponentModel.ISupportInitialize)(this.pbOriginal)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbResult)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbNTSC)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbSRGB)).BeginInit();
-            this.SuspendLayout();
+            pbOriginal = new PictureBox();
+            pbResult = new PictureBox();
+            pbNTSC = new PictureBox();
+            pbSRGB = new PictureBox();
+            pbHistogramNTSC = new PictureBox();
+            pbHistogramSRGB = new PictureBox();
+            btnOpen = new Button();
+            btnProcess = new Button();
+            btnSave = new Button();
+            btnReset = new Button();
+            ((System.ComponentModel.ISupportInitialize)pbOriginal).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pbResult).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pbNTSC).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pbSRGB).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pbHistogramNTSC).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pbHistogramSRGB).BeginInit();
+            SuspendLayout();
+            // 
+            // lblTask
+            // 
+            lblTask.Location = new Point(854, 17);
             // 
             // pbOriginal
             // 
-            this.pbOriginal.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pbOriginal.Location = new System.Drawing.Point(20, 80);
-            this.pbOriginal.Name = "pbOriginal";
-            this.pbOriginal.Size = new System.Drawing.Size(350, 300);
-            this.pbOriginal.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pbOriginal.TabStop = false;
-            // 
-            // pbNTSC
-            // 
-            this.pbNTSC.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pbNTSC.Location = new System.Drawing.Point(400, 80);
-            this.pbNTSC.Name = "pbNTSC";
-            this.pbNTSC.Size = new System.Drawing.Size(350, 300);
-            this.pbNTSC.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pbNTSC.TabStop = false;
-            // 
-            // pbSRGB
-            // 
-            this.pbSRGB.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pbSRGB.Location = new System.Drawing.Point(780, 80);
-            this.pbSRGB.Name = "pbSRGB";
-            this.pbSRGB.Size = new System.Drawing.Size(350, 300);
-            this.pbSRGB.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pbSRGB.TabStop = false;
+            pbOriginal.BorderStyle = BorderStyle.FixedSingle;
+            pbOriginal.Location = new Point(20, 80);
+            pbOriginal.Name = "pbOriginal";
+            pbOriginal.Size = new Size(350, 300);
+            pbOriginal.SizeMode = PictureBoxSizeMode.Zoom;
+            pbOriginal.TabIndex = 4;
+            pbOriginal.TabStop = false;
             // 
             // pbResult
             // 
-            this.pbResult.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pbResult.Location = new System.Drawing.Point(1160, 80);
-            this.pbResult.Name = "pbResult";
-            this.pbResult.Size = new System.Drawing.Size(350, 300);
-            this.pbResult.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pbResult.TabStop = false;
+            pbResult.BorderStyle = BorderStyle.FixedSingle;
+            pbResult.Location = new Point(1160, 80);
+            pbResult.Name = "pbResult";
+            pbResult.Size = new Size(350, 300);
+            pbResult.SizeMode = PictureBoxSizeMode.Zoom;
+            pbResult.TabIndex = 5;
+            pbResult.TabStop = false;
+            // 
+            // pbNTSC
+            // 
+            pbNTSC.BorderStyle = BorderStyle.FixedSingle;
+            pbNTSC.Location = new Point(400, 80);
+            pbNTSC.Name = "pbNTSC";
+            pbNTSC.Size = new Size(350, 300);
+            pbNTSC.SizeMode = PictureBoxSizeMode.Zoom;
+            pbNTSC.TabIndex = 6;
+            pbNTSC.TabStop = false;
+            // 
+            // pbSRGB
+            // 
+            pbSRGB.BorderStyle = BorderStyle.FixedSingle;
+            pbSRGB.Location = new Point(780, 80);
+            pbSRGB.Name = "pbSRGB";
+            pbSRGB.Size = new Size(350, 300);
+            pbSRGB.SizeMode = PictureBoxSizeMode.Zoom;
+            pbSRGB.TabIndex = 7;
+            pbSRGB.TabStop = false;
+            // 
+            // pbHistogramNTSC
+            // 
+            pbHistogramNTSC.BorderStyle = BorderStyle.FixedSingle;
+            pbHistogramNTSC.Location = new Point(400, 400);
+            pbHistogramNTSC.Name = "pbHistogramNTSC";
+            pbHistogramNTSC.Size = new Size(350, 268);
+            pbHistogramNTSC.SizeMode = PictureBoxSizeMode.Zoom;
+            pbHistogramNTSC.TabIndex = 8;
+            pbHistogramNTSC.TabStop = false;
+            // 
+            // pbHistogramSRGB
+            // 
+            pbHistogramSRGB.BorderStyle = BorderStyle.FixedSingle;
+            pbHistogramSRGB.Location = new Point(780, 400);
+            pbHistogramSRGB.Name = "pbHistogramSRGB";
+            pbHistogramSRGB.Size = new Size(350, 268);
+            pbHistogramSRGB.SizeMode = PictureBoxSizeMode.Zoom;
+            pbHistogramSRGB.TabIndex = 9;
+            pbHistogramSRGB.TabStop = false;
             // 
             // btnOpen
             // 
-            this.btnOpen.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.btnOpen.Location = new System.Drawing.Point(20, 400);
-            this.btnOpen.Name = "btnOpen";
-            this.btnOpen.Size = new System.Drawing.Size(100, 40);
-            this.btnOpen.Text = "Open";
-            this.btnOpen.UseVisualStyleBackColor = true;
-            this.btnOpen.Click += new System.EventHandler(this.btnOpen_Click);
+            btnOpen.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btnOpen.Location = new Point(20, 400);
+            btnOpen.Name = "btnOpen";
+            btnOpen.Size = new Size(100, 40);
+            btnOpen.TabIndex = 10;
+            btnOpen.Text = "Open";
+            btnOpen.UseVisualStyleBackColor = true;
+            btnOpen.Click += btnOpen_Click;
             // 
             // btnProcess
             // 
-            this.btnProcess.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.btnProcess.Location = new System.Drawing.Point(140, 400);
-            this.btnProcess.Name = "btnProcess";
-            this.btnProcess.Size = new System.Drawing.Size(100, 40);
-            this.btnProcess.Text = "Process";
-            this.btnProcess.UseVisualStyleBackColor = true;
-            this.btnProcess.Click += new System.EventHandler(this.btnProcess_Click);
+            btnProcess.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btnProcess.Location = new Point(140, 400);
+            btnProcess.Name = "btnProcess";
+            btnProcess.Size = new Size(100, 40);
+            btnProcess.TabIndex = 11;
+            btnProcess.Text = "Process";
+            btnProcess.UseVisualStyleBackColor = true;
+            btnProcess.Click += btnProcess_Click;
             // 
             // btnSave
             // 
-            this.btnSave.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.btnSave.Location = new System.Drawing.Point(260, 400);
-            this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(100, 40);
-            this.btnSave.Text = "Save";
-            this.btnSave.UseVisualStyleBackColor = true;
-            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
+            btnSave.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btnSave.Location = new Point(140, 446);
+            btnSave.Name = "btnSave";
+            btnSave.Size = new Size(100, 40);
+            btnSave.TabIndex = 12;
+            btnSave.Text = "Save";
+            btnSave.UseVisualStyleBackColor = true;
+            btnSave.Click += btnSave_Click;
             // 
             // btnReset
             // 
-            this.btnReset.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.btnReset.Location = new System.Drawing.Point(380, 400);
-            this.btnReset.Name = "btnReset";
-            this.btnReset.Size = new System.Drawing.Size(100, 40);
-            this.btnReset.Text = "Reset";
-            this.btnReset.UseVisualStyleBackColor = true;
-            this.btnReset.Click += new System.EventHandler(this.btnReset_Click);
+            btnReset.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btnReset.Location = new Point(20, 446);
+            btnReset.Name = "btnReset";
+            btnReset.Size = new Size(100, 40);
+            btnReset.TabIndex = 13;
+            btnReset.Text = "Reset";
+            btnReset.UseVisualStyleBackColor = true;
+            btnReset.Click += btnReset_Click;
             // 
             // Form1
             // 
-            this.ClientSize = new System.Drawing.Size(800, 500);
-            this.Controls.Add(this.pbOriginal);
-            this.Controls.Add(this.pbResult);
-            this.Controls.Add(this.pbNTSC);
-            this.Controls.Add(this.pbSRGB);
-            this.Controls.Add(this.btnOpen);
-            this.Controls.Add(this.btnProcess);
-            this.Controls.Add(this.btnSave);
-            this.Controls.Add(this.btnReset);
-            this.Name = "Form1";
-            this.Text = "Задание 1";
-            ((System.ComponentModel.ISupportInitialize)(this.pbOriginal)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbResult)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbNTSC)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbSRGB)).EndInit();
-            this.ResumeLayout(false);
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            ClientSize = new Size(1837, 950);
+            Controls.Add(pbOriginal);
+            Controls.Add(pbResult);
+            Controls.Add(pbNTSC);
+            Controls.Add(pbSRGB);
+            Controls.Add(pbHistogramNTSC);
+            Controls.Add(pbHistogramSRGB);
+            Controls.Add(btnOpen);
+            Controls.Add(btnProcess);
+            Controls.Add(btnSave);
+            Controls.Add(btnReset);
+            Name = "Form1";
+            Text = "Задание 1";
+            Controls.SetChildIndex(btnReset, 0);
+            Controls.SetChildIndex(btnSave, 0);
+            Controls.SetChildIndex(btnProcess, 0);
+            Controls.SetChildIndex(btnOpen, 0);
+            Controls.SetChildIndex(pbHistogramSRGB, 0);
+            Controls.SetChildIndex(pbHistogramNTSC, 0);
+            Controls.SetChildIndex(pbSRGB, 0);
+            Controls.SetChildIndex(pbNTSC, 0);
+            Controls.SetChildIndex(pbResult, 0);
+            Controls.SetChildIndex(pbOriginal, 0);
+            Controls.SetChildIndex(lblTask, 0);
+            ((System.ComponentModel.ISupportInitialize)pbOriginal).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pbResult).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pbNTSC).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pbSRGB).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pbHistogramNTSC).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pbHistogramSRGB).EndInit();
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -133,6 +186,8 @@
         private System.Windows.Forms.PictureBox pbResult;
         private System.Windows.Forms.PictureBox pbNTSC;
         private System.Windows.Forms.PictureBox pbSRGB;
+        private System.Windows.Forms.PictureBox pbHistogramNTSC;
+        private System.Windows.Forms.PictureBox pbHistogramSRGB;
         private System.Windows.Forms.Button btnOpen;
         private System.Windows.Forms.Button btnProcess;
         private System.Windows.Forms.Button btnSave;
