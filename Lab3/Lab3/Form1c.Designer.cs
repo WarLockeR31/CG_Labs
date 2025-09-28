@@ -30,10 +30,7 @@
         {
             pictureBox1 = new PictureBox();
             btnOpen = new Button();
-            trbTolerance = new TrackBar();
-            lblTol = new Label();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)trbTolerance).BeginInit();
             SuspendLayout();
             // 
             // lblTask
@@ -60,32 +57,11 @@
             btnOpen.Text = "Открыть";
             btnOpen.UseVisualStyleBackColor = true;
             // 
-            // trbTolerance
-            // 
-            trbTolerance.Location = new Point(562, 345);
-            trbTolerance.Name = "trbTolerance";
-            trbTolerance.Size = new Size(226, 45);
-            trbTolerance.TabIndex = 8;
-            // 
-            // lblTol
-            // 
-            lblTol.AutoEllipsis = true;
-            lblTol.AutoSize = true;
-            lblTol.Font = new Font("Segoe UI", 12F);
-            lblTol.Location = new Point(624, 311);
-            lblTol.Name = "lblTol";
-            lblTol.Size = new Size(82, 21);
-            lblTol.TabIndex = 9;
-            lblTol.Text = "Tolerance: ";
-            lblTol.Click += label1_Click;
-            // 
             // Form1c
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
-            Controls.Add(lblTol);
-            Controls.Add(trbTolerance);
             Controls.Add(btnOpen);
             Controls.Add(pictureBox1);
             Name = "Form1c";
@@ -93,10 +69,7 @@
             Controls.SetChildIndex(lblTask, 0);
             Controls.SetChildIndex(pictureBox1, 0);
             Controls.SetChildIndex(btnOpen, 0);
-            Controls.SetChildIndex(trbTolerance, 0);
-            Controls.SetChildIndex(lblTol, 0);
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
-            ((System.ComponentModel.ISupportInitialize)trbTolerance).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -105,7 +78,5 @@
 
         private PictureBox pictureBox1;
         private Button btnOpen;
-        private TrackBar trbTolerance;
-        private Label lblTol;
     }
 }

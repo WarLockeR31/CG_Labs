@@ -2,20 +2,54 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Windows.Forms;
-using FastBitmap; 
+using FastBitmap;
 
 namespace Lab3
 {
     public partial class Form1c : SwitchableForm
     {
         private Bitmap _src;
-        private List<Point> _contour;
-        private int Tol => trbTolerance?.Value ?? 20;
 
-        // 8: E, SE, S, SW, W, NW, N, NE
-        private static readonly int[] DX = { 1, 1, 0, -1, -1, -1, 0, 1 };
-        private static readonly int[] DY = { 0, 1, 1, 1, 0, -1, -1, -1 };
+        struct NeighborMap
+        {
+            private static readonly int[] DX = { 1,  1,  0,  -1, -1, -1,  0,  1 };
+            private static readonly int[] DY = { 0, -1, -1,  -1,  0,  1,  1,  1 };
+
+            private int lastMovement = 6;
+
+            public int LastMovement => lastMovement;
+
+            public int[] GetRightDir()
+            {
+                int[] res = new int[2];
+                res[0] = -DY[lastMovement];
+                res[1] = DX[lastMovement];
+                return res;
+            }
+
+            public NeighborMap()
+            {
+            }
+
+            public int RotateDirection()
+            {
+                if (lastMovement == 0)
+                    lastMovement = 7;
+                else
+                    lastMovement = (lastMovement - 1) % 8;
+                return lastMovement;
+            }
+
+            public Point GetNextPoint(Point p)
+            {
+                int dx = DX[lastMovement];
+                int dy = DY[lastMovement];
+
+                return new Point(p.X + dx, p.Y + dy);
+            }
+        }
 
         public Form1c()
         {
@@ -23,16 +57,9 @@ namespace Lab3
 
             if (pictureBox1 != null)
                 pictureBox1.MouseDown += pictureBox1_MouseDown;
+
             if (btnOpen != null)
                 btnOpen.Click += btnOpen_Click;
-            if (trbTolerance != null)
-            {
-                trbTolerance.Minimum = 0;
-                trbTolerance.Maximum = 128;
-                trbTolerance.Value = 20;
-                trbTolerance.ValueChanged += (s, e) => lblTol.Text = $"Толерантность: {Tol}";
-                lblTol.Text = $"Толерантность: {Tol}";
-            }
         }
 
         private void btnOpen_Click(object sender, EventArgs e)
@@ -52,7 +79,7 @@ namespace Lab3
                         using (var g = Graphics.FromImage(_src))
                             g.DrawImageUnscaled(tmp, 0, 0);
                     }
-                    _contour = null;
+
                     pictureBox1.Image?.Dispose();
                     pictureBox1.Image = (Bitmap)_src.Clone();
                 }
@@ -65,161 +92,115 @@ namespace Lab3
             if (!TryTranslateToImagePoint(pictureBox1, e.Location, _src.Size, out var seed))
                 return;
 
-            Color seedColor;
-            using (var fast = new FastBitmap.FastBitmap(_src))
-            {
-                seedColor = fast[seed.X, seed.Y];
-            }
+            Color innerColor;
+            using (var fb = new FastBitmap.FastBitmap(_src))
+                innerColor = fb[seed.X, seed.Y];
 
-            bool[,] inRegion;
-            var start = FindBoundaryStartFromSeed(_src, seed, seedColor, Tol, out inRegion);
-            if (start == null)
+            Point? startingPoint = GetFirstBorderPoint(_src, innerColor, seed);
+            if (startingPoint == null)
             {
-                MessageBox.Show("Не удалось найти границу (возможно, объект слишком мал или разорван).");
+                MessageBox.Show("Ошибка");
                 return;
             }
 
-            _contour = TraceContourMoore(inRegion, start.Value);
+            Color borderColor;
+            using (var fb = new FastBitmap.FastBitmap(_src))
+                borderColor = fb[startingPoint.Value.X, startingPoint.Value.Y];
 
-            DrawContourOverlay();
+            var borderPoints = BuildContour(_src, startingPoint.Value, innerColor, borderColor);
+            if (borderPoints.Count == 0)
+            {
+                MessageBox.Show("Ошибка");
+                return;
+            }
+
+            Bitmap b = (Bitmap)_src.Clone();
+
+            DrawContour(b, borderPoints, Color.Red); 
+
+            pictureBox1.Image?.Dispose();
+            pictureBox1.Image = b;
         }
 
-        private static Point? FindBoundaryStartFromSeed(Bitmap bmp, Point seed, Color seedColor, int tol, out bool[,] inRegion)
+        private Point? GetFirstBorderPoint(Bitmap bmp, Color innerColor, Point startPoint)
+        {
+            Queue<Point> q = new Queue<Point>();
+            int curX = startPoint.X;
+            int curY = startPoint.Y;
+
+            q.Enqueue(new Point(curX + 1, curY));
+
+            while (q.Count > 0)
+            {
+                Point curPoint = q.Dequeue();
+
+                if ((uint)curPoint.X == bmp.Width) 
+                    continue;
+
+                if (bmp.GetPixel(curPoint.X, curPoint.Y) != innerColor)
+                {
+                    return curPoint;
+                }
+
+                q.Enqueue(new Point(curPoint.X + 1, curPoint.Y));
+            }
+
+            return null;
+        }
+
+        private List<Point> BuildContour(Bitmap bmp, Point seedOnBorder, Color innerColor, Color borderColor)
         {
             int w = bmp.Width, h = bmp.Height;
-            inRegion = new bool[w, h];
+            var all = new List<Point> { seedOnBorder };
+            var nm = new NeighborMap();
+            var curPoint = seedOnBorder;
             var visited = new bool[w, h];
-            var q = new Queue<Point>();
 
             using (var fast = new FastBitmap.FastBitmap(bmp))
             {
-                bool Similar(Color c) =>
-                    Math.Abs(c.R - seedColor.R) <= tol &&
-                    Math.Abs(c.G - seedColor.G) <= tol &&
-                    Math.Abs(c.B - seedColor.B) <= tol;
-
-                bool InBounds(int x, int y) => (uint)x < w && (uint)y < h;
-
-                if (!Similar(fast[seed.X, seed.Y])) return null;
-
-                q.Enqueue(seed);
-                visited[seed.X, seed.Y] = true;
-                inRegion[seed.X, seed.Y] = true;
-
-                Point? boundaryStart = null;
-
-                int[] qdx = { 1, -1, 0, 0 };
-                int[] qdy = { 0, 0, 1, -1 };
-
-                while (q.Count > 0)
+                int safety = w * h * 4; 
+                while (safety-- > 0)
                 {
-                    var p = q.Dequeue();
-
-                    bool isBoundary = false;
-                    for (int k = 0; k < 8 && !isBoundary; k++)
+                    bool found = false;
+                    for (int i = 0; i < 8; i++)
                     {
-                        int nx = p.X + DX[k], ny = p.Y + DY[k];
-                        if (!InBounds(nx, ny) || !SimilarSafe(fast, InBounds, nx, ny, Similar))
-                            isBoundary = true;
-                    }
-                    if (isBoundary && boundaryStart == null)
-                        boundaryStart = p;
-
-                    for (int k = 0; k < 4; k++)
-                    {
-                        int nx = p.X + qdx[k], ny = p.Y + qdy[k];
-                        if (!InBounds(nx, ny) || visited[nx, ny]) continue;
-                        visited[nx, ny] = true;
-
-                        if (Similar(fast[nx, ny]))
+                        var cand = nm.GetNextPoint(curPoint);
+                        var innerDir = nm.GetRightDir();
+                        var innerPoint = new Point(cand.X + innerDir[0], cand.Y + innerDir[1]);
+                        if ((uint)cand.X < w && (uint)cand.Y < h &&
+                            !visited[cand.X, cand.Y] &&
+                            fast[innerPoint.X, innerPoint.Y] == innerColor &&   
+                            fast[cand.X, cand.Y] == borderColor)
                         {
-                            inRegion[nx, ny] = true;
-                            q.Enqueue(new Point(nx, ny));
+                            curPoint = cand;
+                            visited[cand.X, cand.Y] = true;
+                            all.Add(curPoint);
+                            found = true;
+                            break;
                         }
+                        nm.RotateDirection();
                     }
+                    if (!found) break;                // контур оборвался / цвет неверный
+                    if (curPoint == seedOnBorder) break; // вернулись к старту — готово
                 }
-
-                return boundaryStart;
             }
 
-            static bool SimilarSafe(FastBitmap.FastBitmap fb, Func<int, int, bool> inb, int x, int y, Func<Color, bool> sim)
-                => inb(x, y) && sim(fb[x, y]);
+            return all;
         }
-
-        private List<Point> TraceContourMoore(bool[,] inRegion, Point start, int maxSteps = 2_000_000)
+        
+        private static void DrawContour(Bitmap bmp, IEnumerable<Point> borderPoints, Color outline)
         {
-            int w = inRegion.GetLength(0);
-            int h = inRegion.GetLength(1);
-
-            bool InBounds(int x, int y) => (uint)x < w && (uint)y < h;
-            bool IsIn(int x, int y) => InBounds(x, y) && inRegion[x, y];
-
-            var contour = new List<Point>();
-            if (!IsIn(start.X, start.Y)) return contour;
-
-            var curr = start;
-            int backtrackDir = 4; 
-            int startBacktrackDir = backtrackDir;
-            contour.Add(curr);
-
-            int steps = 0;
-            do
-            {
-                int startIdx = (backtrackDir + 1) % 8;
-                bool found = false;
-
-                for (int k = 0; k < 8; k++)
-                {
-                    int i = (startIdx + k) % 8;
-                    int nx = curr.X + DX[i];
-                    int ny = curr.Y + DY[i];
-
-                    if (IsIn(nx, ny))
-                    {
-                        var next = new Point(nx, ny);
-                        if (contour[^1] != next)
-                            contour.Add(next);
-
-                        backtrackDir = (i + 4) % 8; 
-                        curr = next;
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found) break;
-                if (++steps > maxSteps) break;
-
-            } while (!(curr == start && backtrackDir == startBacktrackDir));
-
-            return contour;
-        }
-
-        private void DrawContourOverlay()
-        {
-            if (_src == null || _contour == null || _contour.Count < 2) return;
-
-            using (var overlay = (Bitmap)_src.Clone())
-            using (var g = Graphics.FromImage(overlay))
-            using (var pen = new Pen(Color.Red, 1f))
-            {
-                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
-
-                for (int i = 1; i < _contour.Count; i++)
-                    g.DrawLine(pen, _contour[i - 1], _contour[i]);
-
-                if (_contour[0] != _contour[^1])
-                    g.DrawLine(pen, _contour[^1], _contour[0]);
-
-                pictureBox1.Image?.Dispose();
-                pictureBox1.Image = (Bitmap)overlay.Clone();
-            }
+            using var fb = new FastBitmap.FastBitmap(bmp);
+            foreach (var p in borderPoints)
+                if ((uint)p.X < bmp.Width && (uint)p.Y < bmp.Height)
+                    fb[p.X, p.Y] = outline;
         }
 
         private static bool TryTranslateToImagePoint(PictureBox pb, Point p, Size imgSize, out Point imgPt)
         {
             var pbSize = pb.ClientSize;
-            if (imgSize.Width <= 0 || imgSize.Height <= 0 || pbSize.Width <= 0 || pbSize.Height <= 0)
+            if (imgSize.Width <= 0 || imgSize.Height <= 0 ||
+                pbSize.Width <= 0 || pbSize.Height <= 0)
             {
                 imgPt = Point.Empty;
                 return false;
@@ -245,7 +226,8 @@ namespace Lab3
                 offsetY = (pbSize.Height - drawHeight) / 2;
             }
 
-            if (p.X < offsetX || p.X >= offsetX + drawWidth || p.Y < offsetY || p.Y >= offsetY + drawHeight)
+            if (p.X < offsetX || p.X >= offsetX + drawWidth ||
+                p.Y < offsetY || p.Y >= offsetY + drawHeight)
             {
                 imgPt = Point.Empty;
                 return false;
@@ -262,11 +244,6 @@ namespace Lab3
 
             imgPt = new Point(ix, iy);
             return true;
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }
