@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1c));
             pictureBox1 = new PictureBox();
             btnOpen = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -40,6 +41,7 @@
             // 
             // pictureBox1
             // 
+            pictureBox1.InitialImage = (Image)resources.GetObject("pictureBox1.InitialImage");
             pictureBox1.Location = new Point(12, 58);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(500, 380);

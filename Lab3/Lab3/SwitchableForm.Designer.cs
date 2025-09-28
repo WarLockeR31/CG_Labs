@@ -100,6 +100,7 @@
             button4.TabIndex = 4;
             button4.Text = "Task2";
             button4.UseVisualStyleBackColor = true;
+            button4.Click += button4_Click;
             // 
             // button5
             // 
@@ -112,6 +113,7 @@
             button5.TabIndex = 5;
             button5.Text = "Task3";
             button5.UseVisualStyleBackColor = true;
+            button5.Click += button5_Click;
             // 
             // SwitchableForm
             // 

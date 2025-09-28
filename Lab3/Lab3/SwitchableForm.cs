@@ -31,7 +31,15 @@ namespace Lab3
         {
             Program.LoadForm(3);
         }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            Program.LoadForm(4);
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            Program.LoadForm(5);
+        }
     }
-
-
 }
