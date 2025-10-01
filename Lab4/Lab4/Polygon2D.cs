@@ -36,6 +36,20 @@ namespace MathPrimitives
 
         public void Add(T item) => _items.Add(item);
         public void AddRange(IEnumerable<T> items) => _items.AddRange(items);
+        public void InsertAfter(int index, T item)
+        {
+            if (Count == 0)
+            {
+                _items.Add(item);
+                return;
+            }
+
+            int pos = WrapIndex(index) + 1;
+            if (pos >= _items.Count) 
+                _items.Add(item);
+            else
+                _items.Insert(pos, item);
+        }
         public void Clear() => _items.Clear();
         public bool Remove(T item) => _items.Remove(item);
         public void RemoveAt(int index)

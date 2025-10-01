@@ -62,7 +62,7 @@ namespace MathPrimitives
         public static double LengthSquared(in Vec2 v)
             => Dot(v, v);
 
-        public static double DistanceSquared(in Vec2 a, in Vec2 b)
+        public static double DistanceSquared(this in Vec2 a, in Vec2 b)
         {
             var dx = a.X - b.X;
             var dy = a.Y - b.Y;
@@ -77,7 +77,7 @@ namespace MathPrimitives
         }
 
         // Approximately equal with given epsilon
-        public static bool Approximately(in Vec2 a, in Vec2 b, double eps)
+        public static bool Approximately(this in Vec2 a, in Vec2 b, double eps)
         {
             var dx = a.X - b.X;
             var dy = a.Y - b.Y;
@@ -86,13 +86,13 @@ namespace MathPrimitives
             return (dx <= eps) && (dy <= eps);
         }
 
-        public static double Length(in Vec2 v)
+        public static double Length(this in Vec2 v)
             => Math.Sqrt(LengthSquared(v));
 
-        public static double Distance(in Vec2 a, in Vec2 b)
+        public static double Distance(this in Vec2 a, in Vec2 b)
             => Math.Sqrt(DistanceSquared(a, b));
 
-        public static Vec2 Normalize(in Vec2 v, double epsilon = default)
+        public static Vec2 Normalize(this in Vec2 v, double epsilon = default)
         {
             if (epsilon == default) epsilon = double.CreateChecked(1e-12);
             var len2 = LengthSquared(v);

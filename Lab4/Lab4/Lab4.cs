@@ -3,23 +3,49 @@ using System.Windows.Forms;
 
 namespace Lab4
 {
+    enum ActionMode
+    {
+        None,
+        CreatePolygon,
+    }
+
+    enum SubSelection
+    {
+        None,
+        Vertex,
+        Edge,
+    }
+
     public partial class Lab4 : Form
     {
+        ActionMode curAction = ActionMode.None;
+
+        Bitmap curBitmap;
+
         List<Polygon2D> polygons = new List<Polygon2D>();
-        Polygon2D currentPolygon = null;
         Color polygonColor = Color.FromArgb(128, 0, 255, 0);
+        Color selectedPolygonColor = Color.FromArgb(128, 0, 0, 255);
+        Color vertexColor = Color.Yellow;
+        Color selectedVertexColor = Color.Red;
+
+        Polygon2D currentPolygon = null;
+        int currentVertex = -1;
+        SubSelection currentSubSelection = SubSelection.None;
 
         const float VertexRadius = 5.0f;
+
+        bool isDragging = false;
 
         public Lab4()
         {
             InitializeComponent();
-            panel1.Paint += panel1_Paint;
         }
 
-        private void panel1_Paint(object sender, PaintEventArgs e)
+        private void pb_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
+
+            curBitmap = new Bitmap(pb.Width, pb.Height);
 
             foreach (Polygon2D poly in polygons)
             {
@@ -27,45 +53,45 @@ namespace Lab4
                 {
                     var pts = poly.Select(v => new PointF((float)v.X, (float)v.Y)).ToArray();
 
-                    using (Brush brush = new SolidBrush(polygonColor))
-                        g.FillPolygon(brush, pts);
+                    /*using (Brush brush = new SolidBrush(polygonColor))
+                        g.FillPolygon(brush, pts);*/
 
-                    using (Pen pen = new Pen(Color.Black, 2))
-                        g.DrawPolygon(pen, pts);
+                    bool isSelected = poly == currentPolygon;
+
+                    Color fillColor = isSelected ? selectedPolygonColor : polygonColor;
+                    RasterizePolygon(curBitmap, poly, fillColor);
+                    
 
                     for (int i = 0; i < pts.Length; i++)
-                        DrawVertex(g, Point.Round(pts[i]), Color.Red, i.ToString());
+                    {
+                        bool isSelectedVerted = isSelected && currentVertex == i;
+                        Color vColor = isSelectedVerted ? selectedVertexColor : vertexColor;
+                        DrawVertex(g, Point.Round(pts[i]), vColor, i.ToString());
+                    }
                 }
             }
+
+            pb.Image = curBitmap;
         }
 
-        public void panel1_MouseClick(object sender, MouseEventArgs e)
+        public void pb_MouseClick(object sender, MouseEventArgs e)
         {
-            if (CheckPolygonHit(e.Location))
-            {
-                MessageBox.Show("Hit");
-                return;
-            }
 
-            if (currentPolygon == null)
-            {
-                currentPolygon = new Polygon2D();
-                polygons.Add(currentPolygon);
-            }
-
-            currentPolygon.Add(new Vec2(e.X, e.Y));
-
-            panel1.Invalidate();
         }
 
-        public bool CheckPolygonHit(Point point)
+        public bool CheckPolygonHit(Point point, out Polygon2D? hitted)
         {
             foreach (Polygon2D polygon in polygons)
             {
                 if (polygon.ContainsPoint(new Vec2(point.X, point.Y)))
+                {
+                    hitted = polygon;
                     return true;
+                }
+
             }
 
+            hitted = null;
             return false;
         }
 
@@ -113,5 +139,112 @@ namespace Lab4
         }
 
         #endregion
+
+        private void btnCreatePolygon_Click(object sender, EventArgs e)
+        {
+            if (curAction != ActionMode.CreatePolygon)
+            {
+                curAction = ActionMode.CreatePolygon;
+                btnCreatePolygon.Text = "Finish Polygon";
+                ResetSelection();
+            }
+            else
+            {
+                curAction = ActionMode.None;
+                btnCreatePolygon.Text = "Create Polygon";
+                ResetSelection();
+            }
+            btnCreatePolygon.Refresh();
+        }
+
+        private void ResetSelection()
+        {
+            currentPolygon = null;
+            currentVertex = -1;
+        }
+
+        private void pb_MouseDown(object sender, MouseEventArgs e)
+        {
+            Vec2 location = new Vec2(e.X, e.Y);
+            foreach (Polygon2D poly in polygons)
+            {
+                for (int i = 0; i < poly.Count; i++)
+                {
+                    Vec2 v = poly[i];
+                    if (v.DistanceSquared(location) <= VertexRadius * VertexRadius)
+                    {
+                        currentPolygon = poly;
+                        currentVertex = i;
+                        isDragging = true;
+                        return;
+                    }
+                }
+            }
+
+            if (CheckPolygonHit(e.Location, out Polygon2D? polygon))
+            {
+                currentPolygon = polygon;
+                currentVertex = polygon.Count - 1;
+                return;
+            }
+
+            if (curAction != ActionMode.CreatePolygon)
+                return;
+
+            if (currentPolygon == null)
+            {
+                currentPolygon = new Polygon2D();
+                polygons.Add(currentPolygon);
+            }
+
+            currentPolygon.InsertAfter(currentVertex, new Vec2(e.X, e.Y));
+            currentVertex++;
+
+            pb.Invalidate();
+        }
+
+        private void pb_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isDragging)
+            {
+                currentPolygon[currentVertex] = new Vec2(e.X, e.Y);
+                Invalidate();
+            }
+        }
+
+        private void pb_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (isDragging)
+            {
+                isDragging = false;
+            }
+        }
+
+        private void btn_DeleteSelectedPolygon_Click(object sender, EventArgs e)
+        {
+            if (currentPolygon == null)
+            {
+                MessageBox.Show("Выберите полигон");
+                return;
+            }
+            polygons.Remove(currentPolygon);
+        }
+
+        private void btn_DeleteSelectedVertex_Click(object sender, EventArgs e)
+        {
+            if (currentPolygon == null || currentVertex == -1)
+            {
+                MessageBox.Show("Выберите вершину");
+                return;
+            }
+
+            currentPolygon.RemoveAt(currentVertex);
+        }
+
+        private void btn_Clear_Click(object sender, EventArgs e)
+        {
+            ResetSelection();
+            polygons.Clear();
+        }
     }
 }
