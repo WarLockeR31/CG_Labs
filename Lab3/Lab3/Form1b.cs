@@ -57,7 +57,7 @@ namespace Lab3
 
             using (var fb = new FastBitmap.FastBitmap(_src))
             {
-                var target = fb[seed.X, seed.Y];
+                var target = fb[seed.X % _src.Width, seed.Y % _src.Height];
                 FloodFillPattern(fb, seed.X, seed.Y, target);
             }
 
