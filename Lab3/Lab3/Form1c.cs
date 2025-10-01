@@ -119,7 +119,6 @@ namespace Lab3
             Point? startingPoint = GetFirstBorderPoint(_current, innerColor, seed);
             if (startingPoint == null)
             {
-                MessageBox.Show("Ошибка");
                 return;
             }
 
@@ -128,11 +127,7 @@ namespace Lab3
                 borderColor = fb[startingPoint.Value.X, startingPoint.Value.Y];
 
             var borderPoints = BuildContour(_current, startingPoint.Value, innerColor, borderColor);
-            if (borderPoints.Count == 0)
-            {
-                MessageBox.Show("Ошибка");
-                return;
-            }
+            
 
             DrawContour(_current, borderPoints, Color.Red);
             pictureBox1.Image = _current;
@@ -144,21 +139,13 @@ namespace Lab3
             int curX = startPoint.X;
             int curY = startPoint.Y;
 
-            q.Enqueue(new Point(curX + 1, curY));
-
-            while (q.Count > 0)
+            while (++curX < bmp.Width)
             {
-                Point curPoint = q.Dequeue();
-
-                if ((uint)curPoint.X == bmp.Width)
-                    continue;
-
-                if (bmp.GetPixel(curPoint.X, curPoint.Y) != innerColor)
+                if (bmp.GetPixel(curX, curY) != innerColor)
                 {
-                    return curPoint;
+                    return new Point(curX, curY);
                 }
 
-                q.Enqueue(new Point(curPoint.X + 1, curPoint.Y));
             }
 
             return null;
