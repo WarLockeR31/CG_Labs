@@ -98,16 +98,16 @@ namespace Lab4
         {
             if (polygon != null && polygon != currentPolygon)
                 return false;
-            return currentVertex == i       && currentSubSelectionType      == SubSelection.Edge
-                || currentAltVertex == i    && currentAltSubSelectionType   == SubSelection.Edge;
+            return currentVertex == i && currentSubSelectionType == SubSelection.Edge
+                || currentAltVertex == i && currentAltSubSelectionType == SubSelection.Edge;
         }
 
         public bool IsVertexSelected(Polygon2D polygon, int i)
         {
             if (polygon != null && polygon != currentPolygon)
                 return false;
-            return currentVertex == i       && currentSubSelectionType      == SubSelection.Vertex
-                || currentAltVertex == i    && currentAltSubSelectionType   == SubSelection.Vertex;
+            return currentVertex == i && currentSubSelectionType == SubSelection.Vertex
+                || currentAltVertex == i && currentAltSubSelectionType == SubSelection.Vertex;
         }
 
         private void ResetSelection()
@@ -542,6 +542,35 @@ namespace Lab4
 
             curAction = newState;
             return true;
+        }
+
+        private void btn_Shift_Click(object sender, EventArgs e)
+        {
+            if (currentPolygon == null && currentAltPolygon == null)
+            {
+                MessageBox.Show(this, "Выберите хотя бы один полигон");
+                return;
+            }
+
+            Affine2D TranslationMatrix = Affine2D.TranslationMatrix((int)numeric_dx.Value, (int)numeric_dy.Value);
+
+            if (currentPolygon != null)
+            {
+                for (int i = 0; i < currentPolygon.Count; i++)
+                {
+                    currentPolygon[i] = TranslationMatrix.Transform(currentPolygon[i]);
+                }
+            }
+
+            if (currentAltPolygon != null)
+            {
+                for (int i = 0; i < currentAltPolygon.Count; i++)
+                {
+                    currentAltPolygon[i] = TranslationMatrix.Transform(currentAltPolygon[i]);
+                }
+            }
+
+            pb.Invalidate();
         }
     }
 }
