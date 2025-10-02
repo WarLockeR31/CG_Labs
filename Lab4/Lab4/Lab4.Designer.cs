@@ -34,6 +34,9 @@ namespace Lab4
             btn_DeleteSelectedPolygon = new Button();
             btn_DeleteSelectedVertex = new Button();
             btn_Clear = new Button();
+            lbl_PolyCount = new Label();
+            lbl_VertCount = new Label();
+            btn_CheckPoint = new Button();
             ((System.ComponentModel.ISupportInitialize)pb).BeginInit();
             SuspendLayout();
             // 
@@ -62,7 +65,6 @@ namespace Lab4
             pb.TabIndex = 2;
             pb.TabStop = false;
             pb.Paint += pb_Paint;
-            pb.MouseClick += pb_MouseClick;
             pb.MouseDown += pb_MouseDown;
             pb.MouseMove += pb_MouseMove;
             pb.MouseUp += pb_MouseUp;
@@ -109,11 +111,47 @@ namespace Lab4
             btn_Clear.UseVisualStyleBackColor = true;
             btn_Clear.Click += btn_Clear_Click;
             // 
+            // lbl_PolyCount
+            // 
+            lbl_PolyCount.AutoSize = true;
+            lbl_PolyCount.Location = new Point(12, 16);
+            lbl_PolyCount.Name = "lbl_PolyCount";
+            lbl_PolyCount.Size = new Size(59, 15);
+            lbl_PolyCount.TabIndex = 6;
+            lbl_PolyCount.Text = "Polygons:";
+            // 
+            // lbl_VertCount
+            // 
+            lbl_VertCount.AutoSize = true;
+            lbl_VertCount.ImageAlign = ContentAlignment.TopLeft;
+            lbl_VertCount.Location = new Point(12, 35);
+            lbl_VertCount.Name = "lbl_VertCount";
+            lbl_VertCount.Size = new Size(50, 15);
+            lbl_VertCount.TabIndex = 7;
+            lbl_VertCount.Text = "Vertices:";
+            // 
+            // btn_CheckPoint
+            // 
+            btn_CheckPoint.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btn_CheckPoint.FlatAppearance.BorderColor = Color.Black;
+            btn_CheckPoint.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btn_CheckPoint.Location = new Point(418, 300);
+            btn_CheckPoint.Margin = new Padding(3, 2, 3, 2);
+            btn_CheckPoint.Name = "btn_CheckPoint";
+            btn_CheckPoint.Size = new Size(248, 27);
+            btn_CheckPoint.TabIndex = 8;
+            btn_CheckPoint.Text = "Принадлежность точки";
+            btn_CheckPoint.UseVisualStyleBackColor = true;
+            btn_CheckPoint.Click += btn_CheckPoint_Click;
+            // 
             // Lab4
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(676, 338);
+            Controls.Add(btn_CheckPoint);
+            Controls.Add(lbl_VertCount);
+            Controls.Add(lbl_PolyCount);
             Controls.Add(btn_Clear);
             Controls.Add(btn_DeleteSelectedVertex);
             Controls.Add(btn_DeleteSelectedPolygon);
@@ -124,6 +162,7 @@ namespace Lab4
             Text = "Lab4";
             ((System.ComponentModel.ISupportInitialize)pb).EndInit();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -132,5 +171,8 @@ namespace Lab4
         private Button btn_DeleteSelectedPolygon;
         private Button btn_DeleteSelectedVertex;
         private Button btn_Clear;
+        private Label lbl_PolyCount;
+        private Label lbl_VertCount;
+        private Button btn_CheckPoint;
     }
 }
