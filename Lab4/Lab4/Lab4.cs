@@ -23,6 +23,7 @@ namespace Lab4
         ActionMode curAction = ActionMode.None;
         List<Polygon2D> polygons = new List<Polygon2D>();
         bool isDragging = false;
+        private bool isSelectingCenter = false;
 
         // Colors and styles
         Color polygonColor = Color.FromArgb(255, 0, 255, 0);
@@ -377,7 +378,20 @@ namespace Lab4
         private void pb_MouseDown(object sender, MouseEventArgs e)
         {
             Vec2 location = new Vec2(e.X, e.Y);
+            
+            if (isSelectingCenter)
+            {
+                numeric_cx.Value = e.X;
+                numeric_cy.Value = e.Y;
 
+                isSelectingCenter = false;
+                pb.Cursor = Cursors.Default;
+
+                MessageBox.Show($"Точка выбрана: ({e.X}, {e.Y})",
+                    "Центр выбран", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            
             foreach (Polygon2D poly in polygons)
             {
                 if (CheckVertexHit(location, poly, out int vertexIndex))
@@ -572,5 +586,151 @@ namespace Lab4
 
             pb.Invalidate();
         }
+
+        private void btn_RotatePoint_Click(object sender, EventArgs e)
+        {
+            if (currentPolygon == null && currentAltPolygon == null)
+            {
+                MessageBox.Show(this, "Выберите хотя бы один полигон");
+                return;
+            }
+
+            double angle = (double)numeric_angle.Value;
+            double cx = (double)numeric_cx.Value;
+            double cy = (double)numeric_cy.Value;
+
+            Affine2D R = Affine2D.RotationMatrix(angle, cx, cy);
+
+            if (currentPolygon != null)
+            {
+                for (int i = 0; i < currentPolygon.Count; i++)
+                    currentPolygon[i] = R.Transform(currentPolygon[i]);
+            }
+
+            if (currentAltPolygon != null)
+            {
+                for (int i = 0; i < currentAltPolygon.Count; i++)
+                    currentAltPolygon[i] = R.Transform(currentAltPolygon[i]);
+            }
+
+            pb.Invalidate();
+        }
+
+        private void btn_RotateCenter_Click(object sender, EventArgs e)
+        {
+            if (currentPolygon == null && currentAltPolygon == null)
+            {
+                MessageBox.Show(this, "Выберите хотя бы один полигон");
+                return;
+            }
+
+            double angle = (double)numeric_angle.Value;
+
+            if (currentPolygon != null)
+            {
+                var (cx, cy) = GetPolygonCenter(currentPolygon);
+                Affine2D R = Affine2D.RotationMatrix(angle, cx, cy);
+
+                for (int i = 0; i < currentPolygon.Count; i++)
+                    currentPolygon[i] = R.Transform(currentPolygon[i]);
+            }
+
+            if (currentAltPolygon != null)
+            {
+                var (cx, cy) = GetPolygonCenter(currentAltPolygon);
+                Affine2D R = Affine2D.RotationMatrix(angle, cx, cy);
+
+                for (int i = 0; i < currentAltPolygon.Count; i++)
+                    currentAltPolygon[i] = R.Transform(currentAltPolygon[i]);
+            }
+
+            pb.Invalidate();
+        }
+
+        private void btn_ScalePoint_Click(object sender, EventArgs e)
+        {
+            if (currentPolygon == null && currentAltPolygon == null)
+            {
+                MessageBox.Show(this, "Выберите хотя бы один полигон");
+                return;
+            }
+
+            double sx = (double)numeric_sx.Value;
+            double sy = (double)numeric_sy.Value;
+            double cx = (double)numeric_cx.Value;
+            double cy = (double)numeric_cy.Value;
+
+            Affine2D S = Affine2D.ScaleMatrix(sx, sy, cx, cy);
+
+            if (currentPolygon != null)
+            {
+                for (int i = 0; i < currentPolygon.Count; i++)
+                    currentPolygon[i] = S.Transform(currentPolygon[i]);
+            }
+
+            if (currentAltPolygon != null)
+            {
+                for (int i = 0; i < currentAltPolygon.Count; i++)
+                    currentAltPolygon[i] = S.Transform(currentAltPolygon[i]);
+            }
+
+            pb.Invalidate();
+        }
+
+        private void btn_ScaleCenter_Click(object sender, EventArgs e)
+        {
+            if (currentPolygon == null && currentAltPolygon == null)
+            {
+                MessageBox.Show(this, "Выберите хотя бы один полигон");
+                return;
+            }
+
+            double sx = (double)numeric_sx.Value;
+            double sy = (double)numeric_sy.Value;
+
+            if (currentPolygon != null)
+            {
+                var (cx, cy) = GetPolygonCenter(currentPolygon);
+                Affine2D S = Affine2D.ScaleMatrix(sx, sy, cx, cy);
+
+                for (int i = 0; i < currentPolygon.Count; i++)
+                    currentPolygon[i] = S.Transform(currentPolygon[i]);
+            }
+
+            if (currentAltPolygon != null)
+            {
+                var (cx, cy) = GetPolygonCenter(currentAltPolygon);
+                Affine2D S = Affine2D.ScaleMatrix(sx, sy, cx, cy);
+
+                for (int i = 0; i < currentAltPolygon.Count; i++)
+                    currentAltPolygon[i] = S.Transform(currentAltPolygon[i]);
+            }
+
+            pb.Invalidate();
+        }
+
+
+        private (double cx, double cy) GetPolygonCenter(Polygon2D poly)
+        {
+            if (poly == null || poly.Count == 0)
+                return (0, 0);
+
+            double sx = 0, sy = 0;
+            foreach (var v in poly)
+            {
+                sx += v.X;
+                sy += v.Y;
+            }
+            return (sx / poly.Count, sy / poly.Count);
+        }
+
+        private void btn_SelectCenter_Click(object sender, EventArgs e)
+        {
+            isSelectingCenter = true;
+            pb.Cursor = Cursors.Cross;
+            MessageBox.Show("Кликните на холсте, чтобы выбрать точку (cx, cy)",
+                "Выбор точки", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
     }
 }

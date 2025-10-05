@@ -45,5 +45,42 @@
                 ty = other.c * tx + other.d * ty + other.ty
             };
         }
+
+        public static Affine2D RotationMatrix(double angleDegrees, double cx = 0, double cy = 0)
+        {
+            double angle = angleDegrees * Math.PI / 180.0;
+            float cos = (float)Math.Cos(angle);
+            float sin = (float)Math.Sin(angle);
+
+            // Матрица поворота вокруг (0,0)
+            Affine2D R = new Affine2D(cos, -sin, sin, cos, 0, 0);
+
+            // Если указан центр поворота (cx, cy)
+            if (cx != 0 || cy != 0)
+            {
+                // T(-cx, -cy) * R * T(cx, cy)
+                Affine2D T1 = TranslationMatrix((int)-cx, (int)-cy);
+                Affine2D T2 = TranslationMatrix((int)cx, (int)cy);
+                R = T1.Combine(R).Combine(T2);
+            }
+
+            return R;
+        }
+
+        public static Affine2D ScaleMatrix(double sx, double sy, double cx = 0, double cy = 0)
+        {
+            Affine2D S = new Affine2D((float)sx, 0, 0, (float)sy, 0, 0);
+
+            if (cx != 0 || cy != 0)
+            {
+                // T(-cx, -cy) * S * T(cx, cy)
+                Affine2D T1 = TranslationMatrix((int)-cx, (int)-cy);
+                Affine2D T2 = TranslationMatrix((int)cx, (int)cy);
+                S = T1.Combine(S).Combine(T2);
+            }
+
+            return S;
+        }
+
     }
 }
