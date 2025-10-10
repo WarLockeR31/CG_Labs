@@ -8,6 +8,8 @@ namespace Lab4
         None,
         CreatePolygon,
         CheckPoint,
+        IntersectEdges,            
+        ClassifyPointRelativeEdge, 
     }
 
     enum SubSelection
@@ -44,8 +46,17 @@ namespace Lab4
         int currentAltVertex = -1;
         SubSelection currentAltSubSelectionType = SubSelection.None;
 
-        // Consts
         const float VertexRadius = 5.0f;
+
+        private bool HasDynamicEdge = false;
+        private Vec2 dynA, dynB;                 
+        private Vec2? lastIntersection = null;   
+
+        private readonly List<(Vec2 P, string Text)> classMarks = new();
+
+        private bool IntersectMode => curAction == ActionMode.IntersectEdges;
+        private bool ClassifyMode => curAction == ActionMode.ClassifyPointRelativeEdge;
+
 
 
 
@@ -57,8 +68,9 @@ namespace Lab4
 
         private void pb_Paint(object sender, PaintEventArgs e)
         {
-            Graphics g = e.Graphics;
+            if (pb.Width <= 0 || pb.Height <= 0) return;
 
+            Graphics g = e.Graphics;           
             curBitmap = new Bitmap(pb.Width, pb.Height);
 
             foreach (Polygon2D poly in polygons)
@@ -77,9 +89,8 @@ namespace Lab4
                     bool isSelectedEdge = IsEdgeSelected(poly, i);
                     int j = (i + 1) % pts.Length;
                     if (isSelectedEdge)
-                    {
                         DrawLineWu(curBitmap, pts[i], pts[j], selectedEdgeColor, selectedEdgeThickness);
-                    }
+
                     DrawLineWu(curBitmap, pts[i], pts[j], edgeColor, edgeThickness);
                 }
 
@@ -91,8 +102,61 @@ namespace Lab4
                 }
             }
 
-            e.Graphics.DrawImageUnscaled(curBitmap, 0, 0);
+            if (HasDynamicEdge)
+                DrawLineWu(curBitmap,
+                    new PointF((float)dynA.X, (float)dynA.Y),
+                    new PointF((float)dynB.X, (float)dynB.Y),
+                    Color.MediumVioletRed, 3);
+
+            lastIntersection = null;
+            bool haveTwoRealEdges =
+                currentPolygon != null && currentSubSelectionType == SubSelection.Edge &&
+                currentAltPolygon != null && currentAltSubSelectionType == SubSelection.Edge;
+
+            bool haveEdgeAndDyn =
+                currentPolygon != null && currentSubSelectionType == SubSelection.Edge && HasDynamicEdge;
+
+            if (haveTwoRealEdges)
+            {
+                var (A, B) = GetEdge(currentPolygon, currentVertex);
+                var (C, D) = GetEdge(currentAltPolygon, currentAltVertex);
+                var (ok, I, _, _) = SegmentIntersection(A, B, C, D);
+                if (ok) lastIntersection = I;
+            }
+            else if (haveEdgeAndDyn)
+            {
+                var (A, B) = GetEdge(currentPolygon, currentVertex);
+                var (ok, I, _, _) = SegmentIntersection(A, B, dynA, dynB);
+                if (ok) lastIntersection = I;
+            }
+
+            g.DrawImageUnscaled(curBitmap, 0, 0);
+
+            if (lastIntersection.HasValue)
+            {
+                var p = lastIntersection.Value;
+                using var br = new SolidBrush(Color.Magenta);
+                using var pen = new Pen(Color.Black, 1f);
+                float r = 5f;
+                g.FillEllipse(br, (float)p.X - r, (float)p.Y - r, 2 * r, 2 * r);
+                g.DrawEllipse(pen, (float)p.X - r, (float)p.Y - r, 2 * r, 2 * r);
+
+                using var font = new Font("Segoe UI", 8f, FontStyle.Bold);
+                g.DrawString($"({p.X:0.##}, {p.Y:0.##})", font, Brushes.Black, (float)p.X + 8, (float)p.Y - 8);
+            }
+
+            using (var font = new Font("Segoe UI", 9f, FontStyle.Bold))
+            {
+                foreach (var mark in classMarks)
+                {
+                    g.FillEllipse(Brushes.DarkOrange, (float)mark.P.X - 3, (float)mark.P.Y - 3, 6, 6);
+                    g.DrawString(mark.Text, font, Brushes.DarkOrange, (float)mark.P.X + 8, (float)mark.P.Y - 8);
+                }
+            }
+
+            
         }
+
 
         #region Selection
         public bool IsEdgeSelected(Polygon2D polygon, int i)
@@ -117,6 +181,9 @@ namespace Lab4
             UpdateSelection(false, null, -1, SubSelection.None);
 
             pb.Invalidate();
+
+            HasDynamicEdge = false;
+            lastIntersection = null;
         }
 
         private void UpdateSelection(bool mainSelection, Polygon2D? polygon, int vertexIndex, SubSelection subSelection)
@@ -239,6 +306,35 @@ namespace Lab4
             return distSqToLine <= half * half;
         }
         #endregion
+
+        private (bool ok, Vec2 I, bool parallel, bool collinear) SegmentIntersection(in Vec2 a, in Vec2 b, in Vec2 c, in Vec2 d, double eps = 1e-9)
+        {
+            var r = b - a;
+            var s = d - c;
+            double denom = Vec2Math.Cross(r, s);
+            double qmpxr = Vec2Math.Cross(c - a, r); 
+
+            if (Math.Abs(denom) < eps)
+            {
+                bool col = Math.Abs(qmpxr) < eps;
+                return (false, default, true, col);
+            }
+
+            double t = Vec2Math.Cross(c - a, s) / denom;
+            double u = Vec2Math.Cross(c - a, r) / denom;
+
+            if (t >= -eps && t <= 1 + eps && u >= -eps && u <= 1 + eps)
+                return (true, a + r * t, false, false);
+
+            return (false, default, false, false);
+        }
+
+        private (Vec2 A, Vec2 B) GetEdge(Polygon2D poly, int edgeIndex)
+        {
+            int i = edgeIndex;
+            int j = (edgeIndex + 1) % poly.Count;
+            return (poly[i], poly[j]);
+        }
 
         #region Draw Polygon
         private void DrawVertex(Graphics g, Point p, Color color, string label)
@@ -374,11 +470,105 @@ namespace Lab4
         }
         #endregion
 
+
         #region Mouse Events
         private void pb_MouseDown(object sender, MouseEventArgs e)
         {
             Vec2 location = new Vec2(e.X, e.Y);
-            
+
+            // --- NEW: режим выбора центра остаётся как у тебя ---
+
+            // --- NEW: режим пересечения рёбер ---
+            if (IntersectMode)
+            {
+                if (e.Button == MouseButtons.Left)
+                {
+                    // 1) если кликнули по ребру — выбираем "основное" ребро
+                    foreach (var poly in polygons)
+                    {
+                        if (CheckEdgeHit(location, poly, out int edgeIndex))
+                        {
+                            UpdateSelection(true, poly, edgeIndex, SubSelection.Edge);
+                            pb.Invalidate();
+                            return;
+                        }
+                    }
+
+                    // 2) иначе — начинаем/заканчиваем рисование "свободного" второго ребра
+                    if (!HasDynamicEdge)
+                    {
+                        HasDynamicEdge = true;
+                        dynA = dynB = location;
+                        isDragging = true; // чтобы обновлять по движению
+                    }
+                    else
+                    {
+                        // фиксируем вторую точку
+                        dynB = location;
+                        isDragging = false;
+                    }
+                    pb.Invalidate();
+                    return;
+                }
+
+                if (e.Button == MouseButtons.Right)
+                {
+                    // ПКМ по ребру — альтернативный выбор (второе ребро из многоугольника)
+                    foreach (var poly in polygons)
+                    {
+                        if (CheckEdgeHit(location, poly, out int edgeIndex))
+                        {
+                            UpdateSelection(false, poly, edgeIndex, SubSelection.Edge);
+                            pb.Invalidate();
+                            return;
+                        }
+                    }
+                    // ПКМ в пустоту — сброс альтернативного выбора
+                    UpdateSelection(false, null, -1, SubSelection.None);
+                    pb.Invalidate();
+                    return;
+                }
+            }
+
+            // --- NEW: режим классификации точки относительно ребра ---
+            if (ClassifyMode)
+            {
+                if (e.Button == MouseButtons.Left)
+                {
+                    // если кликаем по ребру — это ребро A->B (основной выбор)
+                    foreach (var poly in polygons)
+                    {
+                        if (CheckEdgeHit(location, poly, out int edgeIndex))
+                        {
+                            UpdateSelection(true, poly, edgeIndex, SubSelection.Edge);
+                            pb.Invalidate();
+                            return;
+                        }
+                    }
+
+                    // иначе — это тестовая точка (если ребро уже выбрано)
+                    if (currentPolygon != null && currentSubSelectionType == SubSelection.Edge)
+                    {
+                        var (A, B) = GetEdge(currentPolygon, currentVertex);
+                        double s = Vec2Math.Cross(B - A, location - A); // >0 слева, <0 справа
+                        string txt = Math.Abs(s) < 1e-9 ? "НА РЕБРЕ" : (s > 0 ? "СЛЕВА" : "СПРАВА");
+                        classMarks.Add((location, txt));
+                        pb.Invalidate();
+                        return;
+                    }
+                }
+
+                if (e.Button == MouseButtons.Right)
+                {
+                    // ПКМ очищает только накопленные подписи (не трогая полигоны/выбор)
+                    classMarks.Clear();
+                    pb.Invalidate();
+                    return;
+                }
+            }
+
+
+
             if (isSelectingCenter)
             {
                 numeric_cx.Value = e.X;
@@ -454,6 +644,13 @@ namespace Lab4
                 currentPolygon[currentVertex] = new Vec2(e.X, e.Y);
                 pb.Invalidate();
             }
+            if (isDragging && IntersectMode && HasDynamicEdge)
+            {
+                dynB = new Vec2(e.X, e.Y);
+                pb.Invalidate();
+                return;
+            }
+
         }
 
         private void pb_MouseUp(object sender, MouseEventArgs e)
@@ -532,11 +729,21 @@ namespace Lab4
 
         private void btn_Clear_Click(object sender, EventArgs e)
         {
+          
             ResetSelection();
+     
             polygons.Clear();
 
+            HasDynamicEdge = false;
+            isDragging = false;            
+            lastIntersection = null;
+            classMarks.Clear();
+
+            curAction = ActionMode.None;
+        
             UpdateCounters();
             pb.Invalidate();
+
         }
 
         private void UpdateCounters()
@@ -731,6 +938,46 @@ namespace Lab4
             MessageBox.Show("Кликните на холсте, чтобы выбрать точку (cx, cy)",
                 "Выбор точки", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+
+        private void btn_IntersectEdges_Click(object? sender, EventArgs e)
+        {
+            if (curAction != ActionMode.IntersectEdges)
+            {
+                if (!TrySwitchState(ActionMode.IntersectEdges))
+                    return;
+                btn_IntersectEdges.Text = "Закончить пересечение";
+                ResetSelection();
+                HasDynamicEdge = false;
+                classMarks.Clear();
+            }
+            else
+            {
+                curAction = ActionMode.None;
+                btn_IntersectEdges.Text = "Пересечение";
+                ResetSelection();
+                HasDynamicEdge = false;
+                lastIntersection = null;
+            }
+            btn_IntersectEdges.Refresh();
+        }
+
+        private void btn_PointVsEdge_Click(object? sender, EventArgs e)
+        {
+            if (curAction != ActionMode.ClassifyPointRelativeEdge)
+            {
+                if (!TrySwitchState(ActionMode.ClassifyPointRelativeEdge))
+                    return;
+                btn_PointVsEdge.Text = "Закончить классиф.";
+                classMarks.Clear();
+            }
+            else
+            {
+                curAction = ActionMode.None;
+                btn_PointVsEdge.Text = "Точка vs Ребро";
+            }
+            btn_PointVsEdge.Refresh();
+        }
+
 
     }
 }
