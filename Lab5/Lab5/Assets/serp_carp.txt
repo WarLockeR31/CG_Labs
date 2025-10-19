@@ -1,0 +1,5 @@
+FXF--FF--FF
+60
+0
+F -> FF
+X -> --FXF++FXF++FXF--
