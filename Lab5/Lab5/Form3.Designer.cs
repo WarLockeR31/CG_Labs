@@ -28,23 +28,39 @@
         /// </summary>
         private void InitializeComponent()
         {
+            btnClearAll = new Button();
             SuspendLayout();
             // 
             // lblTask
             // 
             lblTask.Text = "Задание 3";
             // 
+            // btnClearAll
+            // 
+            btnClearAll.Location = new Point(559, 47);
+            btnClearAll.Name = "btnClearAll";
+            btnClearAll.Size = new Size(107, 30);
+            btnClearAll.TabIndex = 1;
+            btnClearAll.Text = "Очистить все";
+            btnClearAll.UseVisualStyleBackColor = true;
+            btnClearAll.Click += btnClearAll_Click;
+            // 
             // Form3
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(btnClearAll);
             Name = "Form3";
-            Text = "Form3";
+            Text = "Кубические сплайны Безье";
+            Controls.SetChildIndex(btnClearAll, 0);
+            Controls.SetChildIndex(lblTask, 0);
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
+
+        private Button btnClearAll;
     }
 }
