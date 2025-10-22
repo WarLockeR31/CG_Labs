@@ -131,7 +131,6 @@ namespace Lab5
 
         private void EnhanceMountains()
         {
-            // Усиливаем контраст для более выраженных горных пиков
             for (int x = 0; x < size; x++)
             {
                 for (int y = 0; y < size; y++)

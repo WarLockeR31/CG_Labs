@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 namespace Lab5
 {
-    public partial class Form2: SwitchableForm
+    public partial class Form2 : SwitchableForm
     {
         private MidpointDisplacement generator;
         private List<Bitmap> stepBitmaps = new List<Bitmap>();
@@ -30,7 +30,6 @@ namespace Lab5
             sizeTrackBar.Scroll += (s, e) => UpdateLabels();
 
             generateButton.Click += (s, e) => GenerateTerrain();
-            stepComboBox.SelectedIndexChanged += (s, e) => ShowSelectedStep();
 
             UpdateLabels();
         }
@@ -63,10 +62,9 @@ namespace Lab5
 
                 stepBitmaps.Clear();
                 stepBitmaps.Add(bitmap);
-                UpdateStepsComboBox();
                 ShowStep(0);
 
-                titleLabel.Text = $"Задание 2 - Горный массив {size}px";
+
             }
             catch (Exception ex)
             {
@@ -78,19 +76,6 @@ namespace Lab5
                 Cursor = Cursors.Default;
                 generateButton.Enabled = true;
             }
-        }
-
-        private void UpdateStepsComboBox()
-        {
-            stepComboBox.Items.Clear();
-            stepComboBox.Items.Add("Горный массив");
-            stepComboBox.SelectedIndex = 0;
-        }
-
-        private void ShowSelectedStep()
-        {
-            if (stepComboBox.SelectedIndex >= 0)
-                ShowStep(stepComboBox.SelectedIndex);
         }
 
         private void ShowStep(int stepIndex)
