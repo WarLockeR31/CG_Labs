@@ -1,5 +1,12 @@
 namespace MathPrimitives;
 
+public readonly struct Vec4
+{
+	public readonly double X, Y, Z, W;
+	public Vec4(double x, double y, double z, double w) { X=x; Y=y; Z=z; W=w; }
+}
+
+
 public readonly struct Mat4
 {
 	// Row-major 4x4
@@ -54,6 +61,16 @@ public readonly struct Mat4
 			a.M41 * b.M13 + a.M42 * b.M23 + a.M43 * b.M33 + a.M44 * b.M43,
 			a.M41 * b.M14 + a.M42 * b.M24 + a.M43 * b.M34 + a.M44 * b.M44
 		);
+	}
+	
+	public Vec4 TransformPointToVec4(in Vec3 v)
+	{
+		var x = v.X * M11 + v.Y * M12 + v.Z * M13 + 1.0 * M14;
+		var y = v.X * M21 + v.Y * M22 + v.Z * M23 + 1.0 * M24;
+		var z = v.X * M31 + v.Y * M32 + v.Z * M33 + 1.0 * M34;
+		var w = v.X * M41 + v.Y * M42 + v.Z * M43 + 1.0 * M44;
+		
+		return new Vec4(x, y, z, w);
 	}
 
 
@@ -142,7 +159,7 @@ public readonly struct Mat4
 		const double deg = Math.PI / 180.0;
 		var rx = RotationX(35.26438968 * deg);
 		var ry = RotationY(45 * deg);
-		return ry * rx; // сначала X, потом Y
+		return rx * ry; // сначала X, потом Y
 	}
 
 

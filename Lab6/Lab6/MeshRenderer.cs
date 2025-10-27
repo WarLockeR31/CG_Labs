@@ -7,16 +7,27 @@ public enum ProjectionType { Perspective, Axonometric }
 
 public sealed class MeshRenderer
 {
-	private const double Distance = -200;
+	public	const double	StandardDistance = -200;
+	public	const int		GridExtent = 1000;
+	public	const double	StandardFOV = 70;
+	public	const double	StandardScale = 40;
 	
-	public ProjectionType	Projection { get; set; } = ProjectionType.Perspective;
-	public Polyhedron		Model { get; set; } = Polyhedron.RegularTetrahedron(40);
+	public ProjectionType	Projection	{ get; set; } = ProjectionType.Perspective;
+	public Polyhedron		Model		{ get; set; } = null;
 
-	// Параметры модели/вида/проекции
-	public Mat4		ModelTransform	{ get; set; } = Mat4.Identity /** Mat4.RotationY(Math.PI / 8) * Mat4.RotationX(-Math.PI / 10)*/;
-	public Mat4		WorldTransform	{ get; set; } = Mat4.Identity;
-	public Mat4		ViewTransform	{ get; set; } = Mat4.Translation(0, 0, Distance);
-	public double	Focal			{ get; set; } = 10; // пиксели
+	public Mat4		ModelTransform	{ get; set; } = Mat4.Identity;
+	public Mat4		ViewTransform	{ get; set; } = Mat4.Translation(0, 0, StandardDistance);
+	public double	FOV				{ get; set; } = StandardFOV;
+
+	public double Distance
+	{
+		get => _distance;
+		set
+		{
+			_distance = -value;
+			ViewTransform = Mat4.Translation(0, 0, _distance);
+		}
+	}
 
 
 	// Рисовальные настройки
@@ -24,28 +35,29 @@ public sealed class MeshRenderer
 	public Pen		WirePen			{ get; set; } = Pens.Black;
 	public Brush	VertexBrush		{ get; set; } = Brushes.Firebrick;
 	public float	VertexRadius	{ get; set; } = 3f;
-	public bool		AutoFit			{ get; set; } = false;
+	
+	// Grid settings
+	public bool		ShowGrid		{ get; set; } = true;
+	public double	GridSpacing		{ get; set; } = 20.0; // шаг сетки в мировых единицах
+	public Pen		GridPen			{ get; set; } = Pens.Silver;
+	public Pen		AxisPen			{ get; set; } = Pens.DimGray;
+	
+	private double _distance = StandardDistance;
 
 	public MeshRenderer()
 	{
 		//Model.Vertices = Model.Vertices.Select(x => x + Vec3.UnitX * 10 + Vec3.UnitY * 7).ToList();
 	}
-
-	public void ApplyModelTransform(Mat4 m) => ModelTransform = m * ModelTransform;
-	public void ApplyWorldTransform(Mat4 m) => WorldTransform = m * WorldTransform;
+	
+	public void ApplyModelTransformWorld(Mat4 m) => ModelTransform = m * ModelTransform;
+	public void ApplyModelTransformLocal(Mat4 m) => ModelTransform = ModelTransform * m;
 
 	public void ResetView()
 	{
 		ModelTransform = Mat4.Identity;
-		WorldTransform = Mat4.Identity;
-		ViewTransform  = Mat4.Translation(0, 0, Distance);
+		ViewTransform  = Mat4.Translation(0, 0, _distance);
 	}
-
-
-	/// <summary>
-	/// Рисует текущую модель в указанный Graphics и прямоугольник вывода.
-	/// Control не требуется — можно вызывать из любого места (Form.Paint, PictureBox.Paint и т.п.).
-	/// </summary>
+	
 	public void Render(Graphics g, Rectangle viewport)
 	{
 		if (Model is null || Model.Vertices.Count == 0) return;
@@ -53,16 +65,17 @@ public sealed class MeshRenderer
 
 		g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-		var world = ViewTransform * WorldTransform * Mat4.IsometricRotation() * ModelTransform;
+		var viewWorld = ViewTransform * Mat4.IsometricRotation();
+		var world = viewWorld * ModelTransform;
 		var transformed = Model.Vertices.Select(v => world.TransformPoint(v)).ToArray();
-
+		Mat4 proj;
 
 		Vec2[] screen;
 		if (Projection == ProjectionType.Perspective)
 		{
 			const double deg = Math.PI / 180.0;
 			var aspect = (double)viewport.Width / Math.Max(1, viewport.Height);
-			var proj   = Mat4.PerspectiveFovY(fovYdeg: Focal, aspect: aspect, zn: 0.1, zf: 10000); 
+			proj   = Mat4.PerspectiveFovY(fovYdeg: FOV, aspect: aspect, zn: 0.1, zf: 100000); 
 
 			var ndc = transformed.Select(v => proj.TransformPoint(v)).ToArray(); 
 			screen = ToViewport(ndc, viewport);
@@ -70,11 +83,15 @@ public sealed class MeshRenderer
 		else
 		{
 			//transformed = transformed.Select(v => new Vec3(-v.X, -v.Y, v.Z)).ToArray(); //TODO: REMOVE KOSTYL
-			var proj = Mat4.Orthographic(left:-80, right:80, bottom:-80, top:80, zn:-1000, zf:1000);
+			proj = Mat4.Orthographic(left:-80, right:80, bottom:-80, top:80, zn:-1000, zf:1000);
 			var ndc = transformed.Select(v => proj.TransformPoint(v)).ToArray();
 			screen = ToViewport(ndc, viewport);
 		}
 
+		if (ShowGrid)
+		{
+			DrawGridXZ(g, viewport, viewWorld, proj);
+		}
 
 		if (Wireframe)
 		{
@@ -99,42 +116,6 @@ public sealed class MeshRenderer
 			g.FillEllipse(VertexBrush, x - VertexRadius, y - VertexRadius, VertexRadius * 2, VertexRadius * 2);
 		}
 	}
-
-
-	private static Vec2[] ToScreen(IReadOnlyList<Vec3> pts, Rectangle viewport)
-	{
-		double minX = double.PositiveInfinity, minY = double.PositiveInfinity;
-		double maxX = double.NegativeInfinity, maxY = double.NegativeInfinity;
-		foreach (var p in pts)
-		{
-			if (p.X < minX) minX = p.X;
-			if (p.X > maxX) maxX = p.X;
-			if (p.Y < minY) minY = p.Y;
-			if (p.Y > maxY) maxY = p.Y;
-		}
-
-		double w = Math.Max(1e-6, maxX - minX), h = Math.Max(1e-6, maxY - minY);
-		double pad = 0.1; // 10%
-		double scaleX = viewport.Width / (w * (1 + pad * 2));
-		double scaleY = viewport.Height / (h * (1 + pad * 2));
-		double s = Math.Min(scaleX, scaleY);
-
-
-		double cx = (minX + maxX) * 0.5;
-		double cy = (minY + maxY) * 0.5;
-
-
-		var list = new Vec2[pts.Count];
-		for (int i = 0; i < pts.Count; i++)
-		{
-			var p = pts[i];
-			double sx = (p.X - cx) * s + (viewport.Left + viewport.Width * 0.5);
-			double sy = (p.Y - cy) * s + (viewport.Top + viewport.Height * 0.5);
-			list[i] = new Vec2(sx, sy);
-		}
-
-		return list;
-	}
 	
 	private static Vec2[] ToViewport(IReadOnlyList<Vec3> ndc, Rectangle vp)
 	{
@@ -154,5 +135,90 @@ public sealed class MeshRenderer
 			outPts[i] = new Vec2(x, y);
 		}
 		return outPts;
+	}
+
+	private static Vec2 ToViewport(Vec3 ndc, Rectangle vp)
+	{
+		double cx = vp.Left + vp.Width  * 0.5;
+		double cy = vp.Top  + vp.Height * 0.5;
+		double sx = vp.Width  * 0.5;
+		double sy = vp.Height * 0.5;
+		
+		return new Vec2(cx + ndc.X * sx, cy - ndc.Y * sy);
+	}
+
+	private void DrawSegment3D(Graphics g, Rectangle vp, in Vec3 a, in Vec3 b, in Mat4 world, in Mat4 proj, Pen pen)
+	{
+		var A = (proj * world).TransformPointToVec4(a);
+		var B = (proj * world).TransformPointToVec4(b);
+
+		if (!ClipSegmentInClipSpace(A, B, out var CA, out var CB))
+			return;
+
+		var pA = ClipToScreen(CA, vp);
+		var pB = ClipToScreen(CB, vp);
+		g.DrawLine(pen, (float)pA.X, (float)pA.Y, (float)pB.X, (float)pB.Y);
+	}
+
+	private void DrawGridXZ(Graphics g, Rectangle vp, in Mat4 world, in Mat4 proj)
+	{
+		int n = GridExtent;
+		double s = GridSpacing;
+
+		for (int i = -n; i <= n; i++)
+		{
+			// X parallel
+			var a = new Vec3(-n * s, 0, i * s);
+			var b = new Vec3( n * s, 0, i * s);
+			DrawSegment3D(g, vp, a, b, world, proj, i == 0 ? AxisPen : GridPen);
+
+			// Z parallel
+			a = new Vec3(i * s, 0, -n * s);
+			b = new Vec3(i * s, 0,  n * s);
+			DrawSegment3D(g, vp, a, b, world, proj, i == 0 ? AxisPen : GridPen);
+		}
+	}
+
+	private static bool ClipSegmentInClipSpace(in Vec4 A, in Vec4 B, out Vec4 CA, out Vec4 CB)
+	{
+		double t0 = 0.0, t1 = 1.0;
+		double dx = B.X - A.X, dy = B.Y - A.Y, dz = B.Z - A.Z, dw = B.W - A.W;
+
+		// хотим p(t) = A + t*(B-A); для каждой плоскости вида  f(t) = n·p(t) ≤ 0
+		// используем форму p*t ≤ q, где p = n·(B-A), q = -n·A  (эквивалентно «подвигаем» всё в A)
+		static bool ClipOne(double p, double q, ref double t0, ref double t1)
+		{
+			const double eps = 1e-12;
+			if (Math.Abs(p) < eps) return q >= 0;   // параллельно плоскости: либо весь внутри, либо весь вне
+			double t = q / p;
+			if (p < 0) { if (t > t0) t0 = t; if (t0 > t1) return false; } // входим
+			else       { if (t < t1) t1 = t; if (t0 > t1) return false; } // выходим
+			return true;
+		}
+
+		if (!ClipOne( dx - dw,  A.W - A.X, ref t0, ref t1)) { CA=default; CB=default; return false; } // x ≤ w
+		if (!ClipOne(-dx - dw,  A.W + A.X, ref t0, ref t1)) { CA=default; CB=default; return false; } // x ≥ -w
+
+		if (!ClipOne( dy - dw,  A.W - A.Y, ref t0, ref t1)) { CA=default; CB=default; return false; } // y ≤ w
+		if (!ClipOne(-dy - dw,  A.W + A.Y, ref t0, ref t1)) { CA=default; CB=default; return false; } // y ≥ -w
+
+		if (!ClipOne( dz - dw,  A.W - A.Z, ref t0, ref t1)) { CA=default; CB=default; return false; } // z ≤ w
+		if (!ClipOne(-dz - dw,  A.W + A.Z, ref t0, ref t1)) { CA=default; CB=default; return false; } // z ≥ -w
+
+		CA = new Vec4(A.X + dx*t0, A.Y + dy*t0, A.Z + dz*t0, A.W + dw*t0);
+		CB = new Vec4(A.X + dx*t1, A.Y + dy*t1, A.Z + dz*t1, A.W + dw*t1);
+		return true;
+	}
+
+	
+	// Делим на w и в пиксели
+	private static Vec2 ClipToScreen(in Vec4 c, Rectangle vp)
+	{
+	    const double eps = 1e-12;
+	    double invW = Math.Abs(c.W) > eps ? 1.0 / c.W : 0.0;
+	    double xN = c.X * invW, yN = c.Y * invW;
+	    double cx = vp.Left + vp.Width * 0.5, cy = vp.Top + vp.Height * 0.5;
+	    double sx = vp.Width * 0.5, sy = vp.Height * 0.5;
+	    return new Vec2(cx + xN * sx, cy - yN * sy);
 	}
 }
