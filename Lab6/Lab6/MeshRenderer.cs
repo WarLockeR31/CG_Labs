@@ -82,8 +82,12 @@ public sealed class MeshRenderer
 		}
 		else
 		{
-			//transformed = transformed.Select(v => new Vec3(-v.X, -v.Y, v.Z)).ToArray(); //TODO: REMOVE KOSTYL
-			proj = Mat4.Orthographic(left:-80, right:80, bottom:-80, top:80, zn:-1000, zf:1000);
+			var aspect = (double)viewport.Width / Math.Max(1, viewport.Height);
+
+			double vHalf = 80.0;            // полувысота видимой области
+			double hHalf = vHalf * aspect;  // ширина под аспект
+
+			proj = Mat4.Orthographic(-hHalf, hHalf, -vHalf, vHalf, zn: -1000, zf: 1000);
 			var ndc = transformed.Select(v => proj.TransformPoint(v)).ToArray();
 			screen = ToViewport(ndc, viewport);
 		}

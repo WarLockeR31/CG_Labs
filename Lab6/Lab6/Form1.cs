@@ -54,36 +54,48 @@ namespace Lab6
 			lbl_FOV.Text = "FOV: " + tb_FOV.Value;
 		}
 		
-		
+		private static bool isRotating = false;
 		private void Form1_KeyDown(object? sender, KeyEventArgs e)
 		{
 			Action<Mat4> func = e.Control ? _renderer.ApplyModelTransformLocal : _renderer.ApplyModelTransformWorld;
 
+			if (e.KeyCode == Keys.R)
+			{
+				if (isRotating)
+					_timer.Tick -= TimerRotate;
+				else
+					_timer.Tick += TimerRotate;
+				isRotating = !isRotating;
+				e.Handled = true;
+			}
+			
 			if (e.KeyCode == Keys.Left)
 			{
 				func(Mat4.RotationY(+0.05));
-				pb.Invalidate();
 				e.Handled = true;
 			}
 			if (e.KeyCode == Keys.Right)
 			{
 				func(Mat4.RotationY(-0.05));
-				pb.Invalidate();
 				e.Handled = true;
 			}
 			if (e.KeyCode == Keys.Up)
 			{
 				func(Mat4.RotationX(+0.05));
-				pb.Invalidate();
 				e.Handled = true;
 			}
 			if (e.KeyCode == Keys.Down)
 			{
 				func(Mat4.RotationX(-0.05));
-				pb.Invalidate();
 				e.Handled = true;
 			}
 		}
+		
+		private void TimerRotate(object? sender, EventArgs e)
+		{
+			_renderer.ApplyModelTransformWorld(Mat4.RotationY(-0.05)); 
+		}
+
 
 		private void tb_Distance_Scroll(object sender, EventArgs e)
 		{
