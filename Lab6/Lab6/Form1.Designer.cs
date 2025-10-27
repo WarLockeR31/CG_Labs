@@ -93,7 +93,7 @@
 			lbl_FOV.Name = "lbl_FOV";
 			lbl_FOV.Size = new System.Drawing.Size(140, 38);
 			lbl_FOV.TabIndex = 3;
-			lbl_FOV.Text = "FOV: ";
+			lbl_FOV.Text = "FOV: 70";
 			lbl_FOV.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// lbl_Distance
@@ -104,7 +104,7 @@
 			lbl_Distance.Name = "lbl_Distance";
 			lbl_Distance.Size = new System.Drawing.Size(140, 38);
 			lbl_Distance.TabIndex = 5;
-			lbl_Distance.Text = "Distance:";
+			lbl_Distance.Text = "Distance: 200";
 			lbl_Distance.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// tb_Distance

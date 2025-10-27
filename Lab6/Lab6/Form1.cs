@@ -57,7 +57,7 @@ namespace Lab6
 		
 		private void Form1_KeyDown(object? sender, KeyEventArgs e)
 		{
-			Action<Mat4> func = /*e.Control ? _renderer.ApplyWorldTransform : */_renderer.ApplyModelTransformWorld;
+			Action<Mat4> func = e.Control ? _renderer.ApplyModelTransformLocal : _renderer.ApplyModelTransformWorld;
 
 			if (e.KeyCode == Keys.Left)
 			{
