@@ -223,4 +223,12 @@ public sealed class Polyhedron
 	
 	    return new Polyhedron(vertsScaled, dodeFaces);
 	}
+
+    public Vec3 CalculateCenter()
+    {
+        if (Vertices.Count == 0) return Vec3.Zero;
+
+        var sum = Vertices.Aggregate(Vec3.Zero, (acc, v) => acc + v);
+        return sum * (1.0 / Vertices.Count);
+    }
 }

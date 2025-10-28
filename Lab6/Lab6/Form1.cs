@@ -155,5 +155,78 @@ namespace Lab6
 		{
 			_renderer.ResetView();
 		}
-	}
+
+        private void BtnTranslate_Click(object? sender, EventArgs e)
+        {
+            if (_renderer.Model == null) return;
+
+            var tx = (double)numTX.Value;
+            var ty = (double)numTY.Value;
+            var tz = (double)numTZ.Value;
+
+            var translation = Mat4.Translation(tx, ty, tz);
+            _renderer.ApplyModelTransformWorld(translation);
+        }
+
+        private void BtnRotate_Click(object? sender, EventArgs e)
+        {
+            if (_renderer.Model == null) return;
+
+            var rx = (double)numRX.Value * Math.PI / 180.0;
+            var ry = (double)numRY.Value * Math.PI / 180.0;
+            var rz = (double)numRZ.Value * Math.PI / 180.0;
+
+            var rotation = Mat4.RotationX(rx) * Mat4.RotationY(ry) * Mat4.RotationZ(rz);
+            _renderer.ApplyModelTransformWorld(rotation);
+        }
+
+        private void BtnScale_Click(object? sender, EventArgs e)
+        {
+            if (_renderer.Model == null) return;
+
+            var sx = (double)numSX.Value;
+            var sy = (double)numSY.Value;
+            var sz = (double)numSZ.Value;
+
+            // ¬ычисл€ем центр многогранника
+            var center = CalculateMeshCenter();
+
+            var scaling = Mat4.ScaleAtOrigin(sx, sy, sz, center);
+            _renderer.ApplyModelTransformWorld(scaling);
+        }
+
+        private void BtnReflectXY_Click(object? sender, EventArgs e)
+        {
+            if (_renderer.Model == null) return;
+
+            var reflection = Mat4.ReflectionXY();
+            _renderer.ApplyModelTransformWorld(reflection);
+        }
+
+        private void BtnReflectXZ_Click(object? sender, EventArgs e)
+        {
+            if (_renderer.Model == null) return;
+
+            var reflection = Mat4.ReflectionXZ();
+            _renderer.ApplyModelTransformWorld(reflection);
+        }
+
+        private void BtnReflectYZ_Click(object? sender, EventArgs e)
+        {
+            if (_renderer.Model == null) return;
+
+            var reflection = Mat4.ReflectionYZ();
+            _renderer.ApplyModelTransformWorld(reflection);
+        }
+
+        // ¬спомогательный метод дл€ вычислени€ центра многогранника
+        private Vec3 CalculateMeshCenter()
+        {
+            if (_renderer.Model == null || _renderer.Model.Vertices.Count == 0)
+                return Vec3.Zero;
+
+            var sum = _renderer.Model.Vertices.Aggregate(Vec3.Zero, (acc, v) => acc + v);
+            return sum * (1.0 / _renderer.Model.Vertices.Count);
+        }
+    }
 }
