@@ -223,5 +223,48 @@ public readonly struct Mat4
             0, 0, 0, 1
         );
     }
+
+   
+    public static Mat4 RotationAroundAxisX(in Vec3 center, double radians)
+    {
+        var toOrigin = Translation(-center.X, -center.Y, -center.Z);
+        var rotation = RotationX(radians);
+        var back = Translation(center.X, center.Y, center.Z);
+
+        return back * rotation * toOrigin;
+    }
+
+    public static Mat4 RotationAroundAxisY(in Vec3 center, double radians)
+    {
+        var toOrigin = Translation(-center.X, -center.Y, -center.Z);
+        var rotation = RotationY(radians);
+        var back = Translation(center.X, center.Y, center.Z);
+
+        return back * rotation * toOrigin;
+    }
+
+
+    public static Mat4 RotationAroundAxisZ(in Vec3 center, double radians)
+    {
+        var toOrigin = Translation(-center.X, -center.Y, -center.Z);
+        var rotation = RotationZ(radians);
+        var back = Translation(center.X, center.Y, center.Z);
+
+        return back * rotation * toOrigin;
+    }
+
+    public static Mat4 RotationAroundArbitraryAxis(in Vec3 point1, in Vec3 point2, double radians)
+    {
+        var axis = point2 - point1;
+        var axisNormalized = Vec3Math.Normalize(axis);
+
+        var toOrigin = Translation(-point1.X, -point1.Y, -point1.Z);
+
+        var rotation = RotationAroundAxis(axisNormalized, radians);
+
+        var back = Translation(point1.X, point1.Y, point1.Z);
+
+        return back * rotation * toOrigin;
+    }
     #endregion
 }

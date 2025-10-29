@@ -40,6 +40,25 @@
         private System.Windows.Forms.Button btnReflectXZ;
         private System.Windows.Forms.Button btnReflectXY;
 
+        private System.Windows.Forms.GroupBox grpRotationAdvanced;
+        private System.Windows.Forms.Button btnRotateArbitraryAxis;
+        private System.Windows.Forms.Label lblArbitraryAxis;
+        private System.Windows.Forms.NumericUpDown numAxisX2;
+        private System.Windows.Forms.NumericUpDown numAxisY2;
+        private System.Windows.Forms.NumericUpDown numAxisZ2;
+        private System.Windows.Forms.NumericUpDown numAxisX1;
+        private System.Windows.Forms.NumericUpDown numAxisY1;
+        private System.Windows.Forms.NumericUpDown numAxisZ1;
+        private System.Windows.Forms.Label lblAxisPoint2;
+        private System.Windows.Forms.Label lblAxisPoint1;
+        private System.Windows.Forms.NumericUpDown numArbitraryAngle;
+        private System.Windows.Forms.Label lblArbitraryAngle;
+        private System.Windows.Forms.Button btnRotateParallelAxis;
+        private System.Windows.Forms.ComboBox cmbAxis;
+        private System.Windows.Forms.NumericUpDown numParallelAngle;
+        private System.Windows.Forms.Label lblParallelAngle;
+        private System.Windows.Forms.Label lblParallelAxis;
+
         /// <summary>
         ///  Clean up any resources being used.
         /// </summary>
@@ -61,41 +80,60 @@
         /// </summary>
         private void InitializeComponent()
         {
-            pb = new System.Windows.Forms.PictureBox();
-            btn_Projection = new System.Windows.Forms.Button();
-            tb_FOV = new System.Windows.Forms.TrackBar();
-            lbl_FOV = new System.Windows.Forms.Label();
-            lbl_Distance = new System.Windows.Forms.Label();
-            tb_Distance = new System.Windows.Forms.TrackBar();
-            btn_Tetra = new System.Windows.Forms.Button();
-            btn_Octa = new System.Windows.Forms.Button();
-            btn_Hexa = new System.Windows.Forms.Button();
-            btn_Ico = new System.Windows.Forms.Button();
-            btn_Dode = new System.Windows.Forms.Button();
-            btn_Reset = new System.Windows.Forms.Button();
-            grpTransform = new System.Windows.Forms.GroupBox();
-            numSZ = new System.Windows.Forms.NumericUpDown();
-            numSY = new System.Windows.Forms.NumericUpDown();
-            numSX = new System.Windows.Forms.NumericUpDown();
-            btnScale = new System.Windows.Forms.Button();
-            lblScale = new System.Windows.Forms.Label();
-            numRZ = new System.Windows.Forms.NumericUpDown();
-            numRY = new System.Windows.Forms.NumericUpDown();
-            numRX = new System.Windows.Forms.NumericUpDown();
-            btnRotate = new System.Windows.Forms.Button();
-            lblRotate = new System.Windows.Forms.Label();
-            btnTranslate = new System.Windows.Forms.Button();
-            numTZ = new System.Windows.Forms.NumericUpDown();
-            numTY = new System.Windows.Forms.NumericUpDown();
-            numTX = new System.Windows.Forms.NumericUpDown();
-            lblTranslate = new System.Windows.Forms.Label();
-            grpReflection = new System.Windows.Forms.GroupBox();
-            btnReflectYZ = new System.Windows.Forms.Button();
-            btnReflectXZ = new System.Windows.Forms.Button();
-            btnReflectXY = new System.Windows.Forms.Button();
+            pb = new PictureBox();
+            btn_Projection = new Button();
+            tb_FOV = new TrackBar();
+            lbl_FOV = new Label();
+            lbl_Distance = new Label();
+            tb_Distance = new TrackBar();
+            btn_Tetra = new Button();
+            btn_Octa = new Button();
+            btn_Hexa = new Button();
+            btn_Ico = new Button();
+            btn_Dode = new Button();
+            btn_Reset = new Button();
+            grpTransform = new GroupBox();
+            numSZ = new NumericUpDown();
+            numSY = new NumericUpDown();
+            numSX = new NumericUpDown();
+            btnScale = new Button();
+            lblScale = new Label();
+            numRZ = new NumericUpDown();
+            numRY = new NumericUpDown();
+            numRX = new NumericUpDown();
+            btnRotate = new Button();
+            lblRotate = new Label();
+            btnTranslate = new Button();
+            numTZ = new NumericUpDown();
+            numTY = new NumericUpDown();
+            numTX = new NumericUpDown();
+            lblTranslate = new Label();
+            grpReflection = new GroupBox();
+            btnReflectYZ = new Button();
+            btnReflectXZ = new Button();
+            btnReflectXY = new Button();
+            grpRotationAdvanced = new GroupBox();
+            btnRotateArbitraryAxis = new Button();
+            lblArbitraryAxis = new Label();
+            numAxisX2 = new NumericUpDown();
+            numAxisY2 = new NumericUpDown();
+            numAxisZ2 = new NumericUpDown();
+            numAxisX1 = new NumericUpDown();
+            numAxisY1 = new NumericUpDown();
+            numAxisZ1 = new NumericUpDown();
+            lblAxisPoint2 = new Label();
+            lblAxisPoint1 = new Label();
+            numArbitraryAngle = new NumericUpDown();
+            lblArbitraryAngle = new Label();
+            btnRotateParallelAxis = new Button();
+            cmbAxis = new ComboBox();
+            numParallelAngle = new NumericUpDown();
+            lblParallelAngle = new Label();
+            lblParallelAxis = new Label();
             ((System.ComponentModel.ISupportInitialize)pb).BeginInit();
             ((System.ComponentModel.ISupportInitialize)tb_FOV).BeginInit();
             ((System.ComponentModel.ISupportInitialize)tb_Distance).BeginInit();
+            grpTransform.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numSZ).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numSY).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numSX).BeginInit();
@@ -105,30 +143,40 @@
             ((System.ComponentModel.ISupportInitialize)numTZ).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numTY).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numTX).BeginInit();
-            grpTransform.SuspendLayout();
             grpReflection.SuspendLayout();
+            grpRotationAdvanced.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numAxisX2).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numAxisY2).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numAxisZ2).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numAxisX1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numAxisY1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numAxisZ1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numArbitraryAngle).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numParallelAngle).BeginInit();
             SuspendLayout();
             // 
             // pb
             // 
-            pb.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right));
-            pb.BackColor = System.Drawing.SystemColors.ControlLight;
-            pb.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            pb.Location = new System.Drawing.Point(12, 12);
+            pb.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            pb.BackColor = SystemColors.ControlLight;
+            pb.BorderStyle = BorderStyle.FixedSingle;
+            pb.Location = new Point(14, 16);
+            pb.Margin = new Padding(3, 4, 3, 4);
             pb.Name = "pb";
-            pb.Size = new System.Drawing.Size(426, 426);
+            pb.Size = new Size(774, 689);
             pb.TabIndex = 0;
             pb.TabStop = false;
             pb.Paint += pb_Paint;
             // 
             // btn_Projection
             // 
-            btn_Projection.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right));
-            btn_Projection.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            btn_Projection.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-            btn_Projection.Location = new System.Drawing.Point(444, 12);
+            btn_Projection.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btn_Projection.BackColor = SystemColors.ControlLightLight;
+            btn_Projection.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            btn_Projection.Location = new Point(794, 16);
+            btn_Projection.Margin = new Padding(3, 4, 3, 4);
             btn_Projection.Name = "btn_Projection";
-            btn_Projection.Size = new System.Drawing.Size(204, 33);
+            btn_Projection.Size = new Size(270, 44);
             btn_Projection.TabIndex = 1;
             btn_Projection.Text = "Projection: Perspective";
             btn_Projection.UseVisualStyleBackColor = false;
@@ -136,64 +184,67 @@
             // 
             // tb_FOV
             // 
-            tb_FOV.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right));
+            tb_FOV.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             tb_FOV.CausesValidation = false;
             tb_FOV.LargeChange = 10;
-            tb_FOV.Location = new System.Drawing.Point(444, 48);
+            tb_FOV.Location = new Point(794, 64);
+            tb_FOV.Margin = new Padding(3, 4, 3, 4);
             tb_FOV.Maximum = 180;
             tb_FOV.Minimum = 1;
             tb_FOV.Name = "tb_FOV";
-            tb_FOV.Size = new System.Drawing.Size(198, 45);
+            tb_FOV.Size = new Size(226, 56);
             tb_FOV.TabIndex = 2;
-            tb_FOV.TickStyle = System.Windows.Forms.TickStyle.None;
+            tb_FOV.TickStyle = TickStyle.None;
             tb_FOV.Value = 70;
             tb_FOV.Scroll += tb_FOV_Scroll;
             // 
             // lbl_FOV
             // 
-            lbl_FOV.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right));
-            lbl_FOV.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)204));
-            lbl_FOV.Location = new System.Drawing.Point(648, 48);
+            lbl_FOV.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            lbl_FOV.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            lbl_FOV.Location = new Point(1028, 64);
             lbl_FOV.Name = "lbl_FOV";
-            lbl_FOV.Size = new System.Drawing.Size(140, 38);
+            lbl_FOV.Size = new Size(160, 51);
             lbl_FOV.TabIndex = 3;
             lbl_FOV.Text = "FOV: 70";
-            lbl_FOV.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            lbl_FOV.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // lbl_Distance
             // 
-            lbl_Distance.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right));
-            lbl_Distance.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)204));
-            lbl_Distance.Location = new System.Drawing.Point(646, 86);
+            lbl_Distance.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            lbl_Distance.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            lbl_Distance.Location = new Point(1025, 115);
             lbl_Distance.Name = "lbl_Distance";
-            lbl_Distance.Size = new System.Drawing.Size(140, 38);
+            lbl_Distance.Size = new Size(160, 51);
             lbl_Distance.TabIndex = 5;
             lbl_Distance.Text = "Distance: 200";
-            lbl_Distance.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            lbl_Distance.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // tb_Distance
             // 
-            tb_Distance.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right));
+            tb_Distance.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             tb_Distance.CausesValidation = false;
             tb_Distance.LargeChange = 10;
-            tb_Distance.Location = new System.Drawing.Point(444, 86);
+            tb_Distance.Location = new Point(794, 115);
+            tb_Distance.Margin = new Padding(3, 4, 3, 4);
             tb_Distance.Maximum = 500;
             tb_Distance.Minimum = 1;
             tb_Distance.Name = "tb_Distance";
-            tb_Distance.Size = new System.Drawing.Size(198, 45);
+            tb_Distance.Size = new Size(226, 56);
             tb_Distance.TabIndex = 4;
-            tb_Distance.TickStyle = System.Windows.Forms.TickStyle.None;
+            tb_Distance.TickStyle = TickStyle.None;
             tb_Distance.Value = 200;
             tb_Distance.Scroll += tb_Distance_Scroll;
             // 
             // btn_Tetra
             // 
-            btn_Tetra.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right));
-            btn_Tetra.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            btn_Tetra.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-            btn_Tetra.Location = new System.Drawing.Point(444, 127);
+            btn_Tetra.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btn_Tetra.BackColor = SystemColors.ControlLightLight;
+            btn_Tetra.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            btn_Tetra.Location = new Point(794, 169);
+            btn_Tetra.Margin = new Padding(3, 4, 3, 4);
             btn_Tetra.Name = "btn_Tetra";
-            btn_Tetra.Size = new System.Drawing.Size(64, 33);
+            btn_Tetra.Size = new Size(73, 44);
             btn_Tetra.TabIndex = 6;
             btn_Tetra.Text = "Tetra";
             btn_Tetra.UseVisualStyleBackColor = false;
@@ -201,12 +252,13 @@
             // 
             // btn_Octa
             // 
-            btn_Octa.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right));
-            btn_Octa.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            btn_Octa.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-            btn_Octa.Location = new System.Drawing.Point(584, 127);
+            btn_Octa.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btn_Octa.BackColor = SystemColors.ControlLightLight;
+            btn_Octa.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            btn_Octa.Location = new Point(954, 169);
+            btn_Octa.Margin = new Padding(3, 4, 3, 4);
             btn_Octa.Name = "btn_Octa";
-            btn_Octa.Size = new System.Drawing.Size(64, 33);
+            btn_Octa.Size = new Size(73, 44);
             btn_Octa.TabIndex = 7;
             btn_Octa.Text = "Octa";
             btn_Octa.UseVisualStyleBackColor = false;
@@ -214,12 +266,13 @@
             // 
             // btn_Hexa
             // 
-            btn_Hexa.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right));
-            btn_Hexa.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            btn_Hexa.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-            btn_Hexa.Location = new System.Drawing.Point(514, 127);
+            btn_Hexa.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btn_Hexa.BackColor = SystemColors.ControlLightLight;
+            btn_Hexa.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            btn_Hexa.Location = new Point(874, 169);
+            btn_Hexa.Margin = new Padding(3, 4, 3, 4);
             btn_Hexa.Name = "btn_Hexa";
-            btn_Hexa.Size = new System.Drawing.Size(64, 33);
+            btn_Hexa.Size = new Size(73, 44);
             btn_Hexa.TabIndex = 8;
             btn_Hexa.Text = "Hexa";
             btn_Hexa.UseVisualStyleBackColor = false;
@@ -227,12 +280,13 @@
             // 
             // btn_Ico
             // 
-            btn_Ico.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right));
-            btn_Ico.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            btn_Ico.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-            btn_Ico.Location = new System.Drawing.Point(654, 127);
+            btn_Ico.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btn_Ico.BackColor = SystemColors.ControlLightLight;
+            btn_Ico.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            btn_Ico.Location = new Point(1034, 169);
+            btn_Ico.Margin = new Padding(3, 4, 3, 4);
             btn_Ico.Name = "btn_Ico";
-            btn_Ico.Size = new System.Drawing.Size(64, 33);
+            btn_Ico.Size = new Size(73, 44);
             btn_Ico.TabIndex = 9;
             btn_Ico.Text = "Ico";
             btn_Ico.UseVisualStyleBackColor = false;
@@ -240,12 +294,13 @@
             // 
             // btn_Dode
             // 
-            btn_Dode.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right));
-            btn_Dode.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            btn_Dode.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-            btn_Dode.Location = new System.Drawing.Point(724, 127);
+            btn_Dode.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btn_Dode.BackColor = SystemColors.ControlLightLight;
+            btn_Dode.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            btn_Dode.Location = new Point(1114, 169);
+            btn_Dode.Margin = new Padding(3, 4, 3, 4);
             btn_Dode.Name = "btn_Dode";
-            btn_Dode.Size = new System.Drawing.Size(64, 33);
+            btn_Dode.Size = new Size(73, 44);
             btn_Dode.TabIndex = 10;
             btn_Dode.Text = "Dode";
             btn_Dode.UseVisualStyleBackColor = false;
@@ -253,12 +308,13 @@
             // 
             // btn_Reset
             // 
-            btn_Reset.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right));
-            btn_Reset.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            btn_Reset.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-            btn_Reset.Location = new System.Drawing.Point(654, 12);
+            btn_Reset.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btn_Reset.BackColor = SystemColors.ControlLightLight;
+            btn_Reset.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            btn_Reset.Location = new Point(1070, 16);
+            btn_Reset.Margin = new Padding(3, 4, 3, 4);
             btn_Reset.Name = "btn_Reset";
-            btn_Reset.Size = new System.Drawing.Size(134, 33);
+            btn_Reset.Size = new Size(117, 44);
             btn_Reset.TabIndex = 11;
             btn_Reset.Text = "Reset";
             btn_Reset.UseVisualStyleBackColor = false;
@@ -266,7 +322,7 @@
             // 
             // grpTransform
             // 
-            grpTransform.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            grpTransform.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             grpTransform.Controls.Add(numSZ);
             grpTransform.Controls.Add(numSY);
             grpTransform.Controls.Add(numSX);
@@ -282,9 +338,11 @@
             grpTransform.Controls.Add(numTY);
             grpTransform.Controls.Add(numTX);
             grpTransform.Controls.Add(lblTranslate);
-            grpTransform.Location = new System.Drawing.Point(444, 166);
+            grpTransform.Location = new Point(794, 221);
+            grpTransform.Margin = new Padding(3, 4, 3, 4);
             grpTransform.Name = "grpTransform";
-            grpTransform.Size = new System.Drawing.Size(210, 180);
+            grpTransform.Padding = new Padding(3, 4, 3, 4);
+            grpTransform.Size = new Size(240, 240);
             grpTransform.TabIndex = 12;
             grpTransform.TabStop = false;
             grpTransform.Text = "Аффинные преобразования";
@@ -293,11 +351,12 @@
             // 
             numSZ.DecimalPlaces = 1;
             numSZ.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
-            numSZ.Location = new System.Drawing.Point(160, 128);
+            numSZ.Location = new Point(183, 171);
+            numSZ.Margin = new Padding(3, 4, 3, 4);
             numSZ.Maximum = new decimal(new int[] { 5, 0, 0, 0 });
             numSZ.Minimum = new decimal(new int[] { 1, 0, 0, 65536 });
             numSZ.Name = "numSZ";
-            numSZ.Size = new System.Drawing.Size(40, 23);
+            numSZ.Size = new Size(46, 27);
             numSZ.TabIndex = 14;
             numSZ.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
@@ -305,11 +364,12 @@
             // 
             numSY.DecimalPlaces = 1;
             numSY.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
-            numSY.Location = new System.Drawing.Point(115, 128);
+            numSY.Location = new Point(131, 171);
+            numSY.Margin = new Padding(3, 4, 3, 4);
             numSY.Maximum = new decimal(new int[] { 5, 0, 0, 0 });
             numSY.Minimum = new decimal(new int[] { 1, 0, 0, 65536 });
             numSY.Name = "numSY";
-            numSY.Size = new System.Drawing.Size(40, 23);
+            numSY.Size = new Size(46, 27);
             numSY.TabIndex = 13;
             numSY.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
@@ -317,19 +377,21 @@
             // 
             numSX.DecimalPlaces = 1;
             numSX.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
-            numSX.Location = new System.Drawing.Point(70, 128);
+            numSX.Location = new Point(80, 171);
+            numSX.Margin = new Padding(3, 4, 3, 4);
             numSX.Maximum = new decimal(new int[] { 5, 0, 0, 0 });
             numSX.Minimum = new decimal(new int[] { 1, 0, 0, 65536 });
             numSX.Name = "numSX";
-            numSX.Size = new System.Drawing.Size(40, 23);
+            numSX.Size = new Size(46, 27);
             numSX.TabIndex = 12;
             numSX.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
             // btnScale
             // 
-            btnScale.Location = new System.Drawing.Point(10, 153);
+            btnScale.Location = new Point(11, 204);
+            btnScale.Margin = new Padding(3, 4, 3, 4);
             btnScale.Name = "btnScale";
-            btnScale.Size = new System.Drawing.Size(80, 23);
+            btnScale.Size = new Size(115, 31);
             btnScale.TabIndex = 11;
             btnScale.Text = "От центра";
             btnScale.UseVisualStyleBackColor = true;
@@ -338,44 +400,48 @@
             // lblScale
             // 
             lblScale.AutoSize = true;
-            lblScale.Location = new System.Drawing.Point(10, 130);
+            lblScale.Location = new Point(11, 173);
             lblScale.Name = "lblScale";
-            lblScale.Size = new System.Drawing.Size(58, 15);
+            lblScale.Size = new Size(75, 20);
             lblScale.TabIndex = 10;
             lblScale.Text = "Масштаб:";
             // 
             // numRZ
             // 
-            numRZ.Location = new System.Drawing.Point(160, 73);
+            numRZ.Location = new Point(183, 97);
+            numRZ.Margin = new Padding(3, 4, 3, 4);
             numRZ.Maximum = new decimal(new int[] { 180, 0, 0, 0 });
-            numRZ.Minimum = new decimal(new int[] { 180, 0, 0, -2147483648 });
+            numRZ.Minimum = new decimal(new int[] { 180, 0, 0, int.MinValue });
             numRZ.Name = "numRZ";
-            numRZ.Size = new System.Drawing.Size(40, 23);
+            numRZ.Size = new Size(46, 27);
             numRZ.TabIndex = 9;
             // 
             // numRY
             // 
-            numRY.Location = new System.Drawing.Point(115, 73);
+            numRY.Location = new Point(131, 97);
+            numRY.Margin = new Padding(3, 4, 3, 4);
             numRY.Maximum = new decimal(new int[] { 180, 0, 0, 0 });
-            numRY.Minimum = new decimal(new int[] { 180, 0, 0, -2147483648 });
+            numRY.Minimum = new decimal(new int[] { 180, 0, 0, int.MinValue });
             numRY.Name = "numRY";
-            numRY.Size = new System.Drawing.Size(40, 23);
+            numRY.Size = new Size(46, 27);
             numRY.TabIndex = 8;
             // 
             // numRX
             // 
-            numRX.Location = new System.Drawing.Point(70, 73);
+            numRX.Location = new Point(80, 97);
+            numRX.Margin = new Padding(3, 4, 3, 4);
             numRX.Maximum = new decimal(new int[] { 180, 0, 0, 0 });
-            numRX.Minimum = new decimal(new int[] { 180, 0, 0, -2147483648 });
+            numRX.Minimum = new decimal(new int[] { 180, 0, 0, int.MinValue });
             numRX.Name = "numRX";
-            numRX.Size = new System.Drawing.Size(40, 23);
+            numRX.Size = new Size(46, 27);
             numRX.TabIndex = 7;
             // 
             // btnRotate
             // 
-            btnRotate.Location = new System.Drawing.Point(10, 100);
+            btnRotate.Location = new Point(11, 133);
+            btnRotate.Margin = new Padding(3, 4, 3, 4);
             btnRotate.Name = "btnRotate";
-            btnRotate.Size = new System.Drawing.Size(80, 23);
+            btnRotate.Size = new Size(115, 31);
             btnRotate.TabIndex = 6;
             btnRotate.Text = "Применить";
             btnRotate.UseVisualStyleBackColor = true;
@@ -384,17 +450,18 @@
             // lblRotate
             // 
             lblRotate.AutoSize = true;
-            lblRotate.Location = new System.Drawing.Point(10, 75);
+            lblRotate.Location = new Point(11, 100);
             lblRotate.Name = "lblRotate";
-            lblRotate.Size = new System.Drawing.Size(54, 15);
+            lblRotate.Size = new Size(73, 20);
             lblRotate.TabIndex = 5;
             lblRotate.Text = "Поворот:";
             // 
             // btnTranslate
             // 
-            btnTranslate.Location = new System.Drawing.Point(10, 45);
+            btnTranslate.Location = new Point(11, 60);
+            btnTranslate.Margin = new Padding(3, 4, 3, 4);
             btnTranslate.Name = "btnTranslate";
-            btnTranslate.Size = new System.Drawing.Size(80, 23);
+            btnTranslate.Size = new Size(115, 31);
             btnTranslate.TabIndex = 4;
             btnTranslate.Text = "Применить";
             btnTranslate.UseVisualStyleBackColor = true;
@@ -402,58 +469,61 @@
             // 
             // numTZ
             // 
-            numTZ.Location = new System.Drawing.Point(160, 18);
-            numTZ.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
-            numTZ.Minimum = new decimal(new int[] { 100, 0, 0, -2147483648 });
+            numTZ.Location = new Point(183, 24);
+            numTZ.Margin = new Padding(3, 4, 3, 4);
+            numTZ.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numTZ.Name = "numTZ";
-            numTZ.Size = new System.Drawing.Size(40, 23);
+            numTZ.Size = new Size(46, 27);
             numTZ.TabIndex = 3;
             // 
             // numTY
             // 
-            numTY.Location = new System.Drawing.Point(115, 18);
-            numTY.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
-            numTY.Minimum = new decimal(new int[] { 100, 0, 0, -2147483648 });
+            numTY.Location = new Point(131, 24);
+            numTY.Margin = new Padding(3, 4, 3, 4);
+            numTY.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numTY.Name = "numTY";
-            numTY.Size = new System.Drawing.Size(40, 23);
+            numTY.Size = new Size(46, 27);
             numTY.TabIndex = 2;
             // 
             // numTX
             // 
-            numTX.Location = new System.Drawing.Point(70, 18);
-            numTX.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
-            numTX.Minimum = new decimal(new int[] { 100, 0, 0, -2147483648 });
+            numTX.Location = new Point(80, 24);
+            numTX.Margin = new Padding(3, 4, 3, 4);
+            numTX.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numTX.Name = "numTX";
-            numTX.Size = new System.Drawing.Size(40, 23);
+            numTX.Size = new Size(46, 27);
             numTX.TabIndex = 1;
             // 
             // lblTranslate
             // 
             lblTranslate.AutoSize = true;
-            lblTranslate.Location = new System.Drawing.Point(10, 20);
+            lblTranslate.Location = new Point(11, 27);
             lblTranslate.Name = "lblTranslate";
-            lblTranslate.Size = new System.Drawing.Size(60, 15);
+            lblTranslate.Size = new Size(86, 20);
             lblTranslate.TabIndex = 0;
             lblTranslate.Text = "Смещение:";
             // 
             // grpReflection
             // 
-            grpReflection.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            grpReflection.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             grpReflection.Controls.Add(btnReflectYZ);
             grpReflection.Controls.Add(btnReflectXZ);
             grpReflection.Controls.Add(btnReflectXY);
-            grpReflection.Location = new System.Drawing.Point(660, 166);
+            grpReflection.Location = new Point(1041, 221);
+            grpReflection.Margin = new Padding(3, 4, 3, 4);
             grpReflection.Name = "grpReflection";
-            grpReflection.Size = new System.Drawing.Size(128, 100);
+            grpReflection.Padding = new Padding(3, 4, 3, 4);
+            grpReflection.Size = new Size(146, 133);
             grpReflection.TabIndex = 13;
             grpReflection.TabStop = false;
             grpReflection.Text = "Отражение";
             // 
             // btnReflectYZ
             // 
-            btnReflectYZ.Location = new System.Drawing.Point(10, 70);
+            btnReflectYZ.Location = new Point(11, 93);
+            btnReflectYZ.Margin = new Padding(3, 4, 3, 4);
             btnReflectYZ.Name = "btnReflectYZ";
-            btnReflectYZ.Size = new System.Drawing.Size(80, 23);
+            btnReflectYZ.Size = new Size(91, 31);
             btnReflectYZ.TabIndex = 2;
             btnReflectYZ.Text = "YZ";
             btnReflectYZ.UseVisualStyleBackColor = true;
@@ -461,9 +531,10 @@
             // 
             // btnReflectXZ
             // 
-            btnReflectXZ.Location = new System.Drawing.Point(10, 45);
+            btnReflectXZ.Location = new Point(11, 60);
+            btnReflectXZ.Margin = new Padding(3, 4, 3, 4);
             btnReflectXZ.Name = "btnReflectXZ";
-            btnReflectXZ.Size = new System.Drawing.Size(80, 23);
+            btnReflectXZ.Size = new Size(91, 31);
             btnReflectXZ.TabIndex = 1;
             btnReflectXZ.Text = "XZ";
             btnReflectXZ.UseVisualStyleBackColor = true;
@@ -471,19 +542,218 @@
             // 
             // btnReflectXY
             // 
-            btnReflectXY.Location = new System.Drawing.Point(10, 20);
+            btnReflectXY.Location = new Point(11, 27);
+            btnReflectXY.Margin = new Padding(3, 4, 3, 4);
             btnReflectXY.Name = "btnReflectXY";
-            btnReflectXY.Size = new System.Drawing.Size(80, 23);
+            btnReflectXY.Size = new Size(91, 31);
             btnReflectXY.TabIndex = 0;
             btnReflectXY.Text = "XY";
             btnReflectXY.UseVisualStyleBackColor = true;
             btnReflectXY.Click += BtnReflectXY_Click;
             // 
+            // grpRotationAdvanced
+            // 
+            grpRotationAdvanced.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            grpRotationAdvanced.Controls.Add(btnRotateArbitraryAxis);
+            grpRotationAdvanced.Controls.Add(lblArbitraryAxis);
+            grpRotationAdvanced.Controls.Add(numAxisX2);
+            grpRotationAdvanced.Controls.Add(numAxisY2);
+            grpRotationAdvanced.Controls.Add(numAxisZ2);
+            grpRotationAdvanced.Controls.Add(numAxisX1);
+            grpRotationAdvanced.Controls.Add(numAxisY1);
+            grpRotationAdvanced.Controls.Add(numAxisZ1);
+            grpRotationAdvanced.Controls.Add(lblAxisPoint2);
+            grpRotationAdvanced.Controls.Add(lblAxisPoint1);
+            grpRotationAdvanced.Controls.Add(numArbitraryAngle);
+            grpRotationAdvanced.Controls.Add(lblArbitraryAngle);
+            grpRotationAdvanced.Controls.Add(btnRotateParallelAxis);
+            grpRotationAdvanced.Controls.Add(cmbAxis);
+            grpRotationAdvanced.Controls.Add(numParallelAngle);
+            grpRotationAdvanced.Controls.Add(lblParallelAngle);
+            grpRotationAdvanced.Controls.Add(lblParallelAxis);
+            grpRotationAdvanced.Location = new Point(794, 469);
+            grpRotationAdvanced.Margin = new Padding(3, 4, 3, 4);
+            grpRotationAdvanced.Name = "grpRotationAdvanced";
+            grpRotationAdvanced.Padding = new Padding(3, 4, 3, 4);
+            grpRotationAdvanced.Size = new Size(393, 240);
+            grpRotationAdvanced.TabIndex = 14;
+            grpRotationAdvanced.TabStop = false;
+            grpRotationAdvanced.Text = "Специальные вращения";
+            // 
+            // btnRotateArbitraryAxis
+            // 
+            btnRotateArbitraryAxis.Location = new Point(286, 173);
+            btnRotateArbitraryAxis.Margin = new Padding(3, 4, 3, 4);
+            btnRotateArbitraryAxis.Name = "btnRotateArbitraryAxis";
+            btnRotateArbitraryAxis.Size = new Size(91, 31);
+            btnRotateArbitraryAxis.TabIndex = 16;
+            btnRotateArbitraryAxis.Text = "Применить";
+            btnRotateArbitraryAxis.UseVisualStyleBackColor = true;
+            btnRotateArbitraryAxis.Click += BtnRotateArbitraryAxis_Click;
+            // 
+            // lblArbitraryAxis
+            // 
+            lblArbitraryAxis.AutoSize = true;
+            lblArbitraryAxis.Location = new Point(6, 113);
+            lblArbitraryAxis.Name = "lblArbitraryAxis";
+            lblArbitraryAxis.Size = new Size(189, 20);
+            lblArbitraryAxis.TabIndex = 15;
+            lblArbitraryAxis.Text = "Произвольная ось (X,Y,Z):";
+            // 
+            // numAxisX2
+            // 
+            numAxisX2.Location = new Point(80, 173);
+            numAxisX2.Margin = new Padding(3, 4, 3, 4);
+            numAxisX2.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
+            numAxisX2.Name = "numAxisX2";
+            numAxisX2.Size = new Size(46, 27);
+            numAxisX2.TabIndex = 14;
+            numAxisX2.Value = new decimal(new int[] { 50, 0, 0, 0 });
+            // 
+            // numAxisY2
+            // 
+            numAxisY2.Location = new Point(132, 173);
+            numAxisY2.Margin = new Padding(3, 4, 3, 4);
+            numAxisY2.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
+            numAxisY2.Name = "numAxisY2";
+            numAxisY2.Size = new Size(46, 27);
+            numAxisY2.TabIndex = 13;
+            numAxisY2.Value = new decimal(new int[] { 50, 0, 0, 0 });
+            // 
+            // numAxisZ2
+            // 
+            numAxisZ2.Location = new Point(187, 173);
+            numAxisZ2.Margin = new Padding(3, 4, 3, 4);
+            numAxisZ2.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
+            numAxisZ2.Name = "numAxisZ2";
+            numAxisZ2.Size = new Size(46, 27);
+            numAxisZ2.TabIndex = 12;
+            numAxisZ2.Value = new decimal(new int[] { 50, 0, 0, 0 });
+            // 
+            // numAxisX1
+            // 
+            numAxisX1.Location = new Point(83, 138);
+            numAxisX1.Margin = new Padding(3, 4, 3, 4);
+            numAxisX1.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
+            numAxisX1.Name = "numAxisX1";
+            numAxisX1.Size = new Size(46, 27);
+            numAxisX1.TabIndex = 11;
+            numAxisX1.Value = new decimal(new int[] { 100, 0, 0, 0 });
+            // 
+            // numAxisY1
+            // 
+            numAxisY1.Location = new Point(135, 138);
+            numAxisY1.Margin = new Padding(3, 4, 3, 4);
+            numAxisY1.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
+            numAxisY1.Name = "numAxisY1";
+            numAxisY1.Size = new Size(46, 27);
+            numAxisY1.TabIndex = 10;
+            numAxisY1.Value = new decimal(new int[] { 100, 0, 0, 0 });
+            // 
+            // numAxisZ1
+            // 
+            numAxisZ1.Location = new Point(187, 138);
+            numAxisZ1.Margin = new Padding(3, 4, 3, 4);
+            numAxisZ1.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
+            numAxisZ1.Name = "numAxisZ1";
+            numAxisZ1.Size = new Size(46, 27);
+            numAxisZ1.TabIndex = 9;
+            numAxisZ1.Value = new decimal(new int[] { 100, 0, 0, 0 });
+            // 
+            // lblAxisPoint2
+            // 
+            lblAxisPoint2.AutoSize = true;
+            lblAxisPoint2.Location = new Point(11, 177);
+            lblAxisPoint2.Name = "lblAxisPoint2";
+            lblAxisPoint2.Size = new Size(64, 20);
+            lblAxisPoint2.TabIndex = 8;
+            lblAxisPoint2.Text = "Точка 2:";
+            // 
+            // lblAxisPoint1
+            // 
+            lblAxisPoint1.AutoSize = true;
+            lblAxisPoint1.Location = new Point(11, 138);
+            lblAxisPoint1.Name = "lblAxisPoint1";
+            lblAxisPoint1.Size = new Size(64, 20);
+            lblAxisPoint1.TabIndex = 7;
+            lblAxisPoint1.Text = "Точка 1:";
+            // 
+            // numArbitraryAngle
+            // 
+            numArbitraryAngle.Location = new Point(308, 138);
+            numArbitraryAngle.Margin = new Padding(3, 4, 3, 4);
+            numArbitraryAngle.Maximum = new decimal(new int[] { 180, 0, 0, 0 });
+            numArbitraryAngle.Minimum = new decimal(new int[] { 180, 0, 0, int.MinValue });
+            numArbitraryAngle.Name = "numArbitraryAngle";
+            numArbitraryAngle.Size = new Size(46, 27);
+            numArbitraryAngle.TabIndex = 6;
+            numArbitraryAngle.Value = new decimal(new int[] { 45, 0, 0, 0 });
+            // 
+            // lblArbitraryAngle
+            // 
+            lblArbitraryAngle.AutoSize = true;
+            lblArbitraryAngle.Location = new Point(258, 138);
+            lblArbitraryAngle.Name = "lblArbitraryAngle";
+            lblArbitraryAngle.Size = new Size(44, 20);
+            lblArbitraryAngle.TabIndex = 5;
+            lblArbitraryAngle.Text = "Угол:";
+            // 
+            // btnRotateParallelAxis
+            // 
+            btnRotateParallelAxis.Location = new Point(263, 36);
+            btnRotateParallelAxis.Margin = new Padding(3, 4, 3, 4);
+            btnRotateParallelAxis.Name = "btnRotateParallelAxis";
+            btnRotateParallelAxis.Size = new Size(91, 31);
+            btnRotateParallelAxis.TabIndex = 4;
+            btnRotateParallelAxis.Text = "Применить";
+            btnRotateParallelAxis.UseVisualStyleBackColor = true;
+            btnRotateParallelAxis.Click += BtnRotateParallelAxis_Click;
+            // 
+            // cmbAxis
+            // 
+            cmbAxis.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbAxis.FormattingEnabled = true;
+            cmbAxis.Items.AddRange(new object[] { "X", "Y", "Z" });
+            cmbAxis.Location = new Point(188, 33);
+            cmbAxis.Margin = new Padding(3, 4, 3, 4);
+            cmbAxis.Name = "cmbAxis";
+            cmbAxis.Size = new Size(45, 28);
+            cmbAxis.TabIndex = 3;
+            // 
+            // numParallelAngle
+            // 
+            numParallelAngle.Location = new Point(83, 64);
+            numParallelAngle.Margin = new Padding(3, 4, 3, 4);
+            numParallelAngle.Maximum = new decimal(new int[] { 180, 0, 0, 0 });
+            numParallelAngle.Minimum = new decimal(new int[] { 180, 0, 0, int.MinValue });
+            numParallelAngle.Name = "numParallelAngle";
+            numParallelAngle.Size = new Size(46, 27);
+            numParallelAngle.TabIndex = 2;
+            numParallelAngle.Value = new decimal(new int[] { 45, 0, 0, 0 });
+            // 
+            // lblParallelAngle
+            // 
+            lblParallelAngle.AutoSize = true;
+            lblParallelAngle.Location = new Point(29, 71);
+            lblParallelAngle.Name = "lblParallelAngle";
+            lblParallelAngle.Size = new Size(44, 20);
+            lblParallelAngle.TabIndex = 1;
+            lblParallelAngle.Text = "Угол:";
+            // 
+            // lblParallelAxis
+            // 
+            lblParallelAxis.AutoSize = true;
+            lblParallelAxis.Location = new Point(18, 36);
+            lblParallelAxis.Name = "lblParallelAxis";
+            lblParallelAxis.Size = new Size(163, 20);
+            lblParallelAxis.TabIndex = 0;
+            lblParallelAxis.Text = "Ось через центр || OX:";
+            // 
             // Form1
             // 
-            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(800, 450);
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(1201, 722);
             Controls.Add(grpReflection);
             Controls.Add(grpTransform);
             Controls.Add(btn_Reset);
@@ -498,10 +768,15 @@
             Controls.Add(tb_FOV);
             Controls.Add(btn_Projection);
             Controls.Add(pb);
+            Controls.Add(grpRotationAdvanced);
+            Margin = new Padding(3, 4, 3, 4);
+            Name = "Form1";
             Text = "Form1";
             ((System.ComponentModel.ISupportInitialize)pb).EndInit();
             ((System.ComponentModel.ISupportInitialize)tb_FOV).EndInit();
             ((System.ComponentModel.ISupportInitialize)tb_Distance).EndInit();
+            grpTransform.ResumeLayout(false);
+            grpTransform.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)numSZ).EndInit();
             ((System.ComponentModel.ISupportInitialize)numSY).EndInit();
             ((System.ComponentModel.ISupportInitialize)numSX).EndInit();
@@ -511,9 +786,17 @@
             ((System.ComponentModel.ISupportInitialize)numTZ).EndInit();
             ((System.ComponentModel.ISupportInitialize)numTY).EndInit();
             ((System.ComponentModel.ISupportInitialize)numTX).EndInit();
-            grpTransform.ResumeLayout(false);
-            grpTransform.PerformLayout();
             grpReflection.ResumeLayout(false);
+            grpRotationAdvanced.ResumeLayout(false);
+            grpRotationAdvanced.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numAxisX2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numAxisY2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numAxisZ2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numAxisX1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numAxisY1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numAxisZ1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numArbitraryAngle).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numParallelAngle).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
