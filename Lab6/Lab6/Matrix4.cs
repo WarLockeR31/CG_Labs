@@ -173,5 +173,55 @@ public readonly struct Mat4
 		);
 	}
 
-	#endregion
+    #endregion
+
+    #region Reflection matrices
+    public static Mat4 ReflectionXY()
+        => new(1, 0, 0, 0,
+               0, 1, 0, 0,
+               0, 0, -1, 0,
+               0, 0, 0, 1);
+
+    public static Mat4 ReflectionXZ()
+        => new(1, 0, 0, 0,
+               0, -1, 0, 0,
+               0, 0, 1, 0,
+               0, 0, 0, 1);
+
+    public static Mat4 ReflectionYZ()
+        => new(-1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1);
+    #endregion
+
+    #region Scale at origin
+    public static Mat4 ScaleAtOrigin(double sx, double sy, double sz, in Vec3 center)
+    {
+        // Масштабирование относительно точки: T⁻¹ * S * T
+        var toOrigin = Translation(-center.X, -center.Y, -center.Z);
+        var scaling = Scale(sx, sy, sz);
+        var back = Translation(center.X, center.Y, center.Z);
+
+        return back * scaling * toOrigin;
+    }
+    #endregion
+
+    #region Advanced transformations
+
+    public static Mat4 RotationAroundAxis(in Vec3 axis, double radians)
+    {
+        var n = Vec3Math.Normalize(axis);
+        double x = n.X, y = n.Y, z = n.Z;
+        double c = Math.Cos(radians), s = Math.Sin(radians);
+        double t = 1 - c;
+
+        return new(
+            t * x * x + c, t * x * y - s * z, t * x * z + s * y, 0,
+            t * x * y + s * z, t * y * y + c, t * y * z - s * x, 0,
+            t * x * z - s * y, t * y * z + s * x, t * z * z + c, 0,
+            0, 0, 0, 1
+        );
+    }
+    #endregion
 }
