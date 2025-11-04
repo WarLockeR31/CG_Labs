@@ -59,6 +59,36 @@
         private System.Windows.Forms.Label lblParallelAngle;
         private System.Windows.Forms.Label lblParallelAxis;
 
+        private System.Windows.Forms.GroupBox gb_lab6;
+        private System.Windows.Forms.GroupBox gb_lab7;
+        private System.Windows.Forms.Button btn_Surface;
+        private System.Windows.Forms.NumericUpDown numNY;
+        private System.Windows.Forms.NumericUpDown numNX;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.NumericUpDown numY1;
+        private System.Windows.Forms.NumericUpDown numY0;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.NumericUpDown numX1;
+        private System.Windows.Forms.NumericUpDown numX0;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ComboBox cmbFunction;
+        private System.Windows.Forms.Button btn_modelSave;
+        private System.Windows.Forms.Button btn_modelLoad;
+        private System.Windows.Forms.Button btn_lab6;
+        private System.Windows.Forms.Button btn_lab7;
+
+        // Новые элементы для фигуры вращения
+        private System.Windows.Forms.DataGridView dgvProfile;
+        private System.Windows.Forms.Button btnAddPoint;
+        private System.Windows.Forms.Button btnClearPoints;
+        private System.Windows.Forms.ComboBox cmbRotationAxis;
+        private System.Windows.Forms.Label lblAxis;
+        private System.Windows.Forms.NumericUpDown numSegments;
+        private System.Windows.Forms.Label lblSegments;
+        private System.Windows.Forms.Button btnBuildRotation;
+        private System.Windows.Forms.Button btnAddSample;
+
         /// <summary>
         ///  Clean up any resources being used.
         /// </summary>
@@ -132,6 +162,15 @@
             lblParallelAxis = new Label();
             gb_lab6 = new GroupBox();
             gb_lab7 = new GroupBox();
+            btnAddSample = new Button();
+            btnBuildRotation = new Button();
+            numSegments = new NumericUpDown();
+            lblSegments = new Label();
+            cmbRotationAxis = new ComboBox();
+            lblAxis = new Label();
+            btnClearPoints = new Button();
+            btnAddPoint = new Button();
+            dgvProfile = new DataGridView();
             btn_Surface = new Button();
             numNY = new NumericUpDown();
             numNX = new NumericUpDown();
@@ -173,6 +212,8 @@
             ((System.ComponentModel.ISupportInitialize)numParallelAngle).BeginInit();
             gb_lab6.SuspendLayout();
             gb_lab7.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvProfile).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numSegments).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numNY).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numNX).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numY1).BeginInit();
@@ -797,6 +838,15 @@
             // gb_lab7
             // 
             gb_lab7.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            gb_lab7.Controls.Add(btnAddSample);
+            gb_lab7.Controls.Add(btnBuildRotation);
+            gb_lab7.Controls.Add(numSegments);
+            gb_lab7.Controls.Add(lblSegments);
+            gb_lab7.Controls.Add(cmbRotationAxis);
+            gb_lab7.Controls.Add(lblAxis);
+            gb_lab7.Controls.Add(btnClearPoints);
+            gb_lab7.Controls.Add(btnAddPoint);
+            gb_lab7.Controls.Add(dgvProfile);
             gb_lab7.Controls.Add(btn_Surface);
             gb_lab7.Controls.Add(numNY);
             gb_lab7.Controls.Add(numNX);
@@ -818,13 +868,103 @@
             gb_lab7.TabStop = false;
             gb_lab7.Visible = false;
             // 
+            // btnAddSample
+            // 
+            btnAddSample.Location = new Point(200, 350);
+            btnAddSample.Name = "btnAddSample";
+            btnAddSample.Size = new Size(180, 30);
+            btnAddSample.TabIndex = 42;
+            btnAddSample.Text = "Пример профиля (тор)";
+            btnAddSample.UseVisualStyleBackColor = true;
+            btnAddSample.Click += btnAddSample_Click;
+            // 
+            // btnBuildRotation
+            // 
+            btnBuildRotation.Location = new Point(200, 310);
+            btnBuildRotation.Name = "btnBuildRotation";
+            btnBuildRotation.Size = new Size(180, 30);
+            btnBuildRotation.TabIndex = 41;
+            btnBuildRotation.Text = "Построить фигуру вращения";
+            btnBuildRotation.UseVisualStyleBackColor = true;
+            btnBuildRotation.Click += btnBuildRotation_Click;
+            // 
+            // numSegments
+            // 
+            numSegments.Location = new Point(320, 270);
+            numSegments.Minimum = new decimal(new int[] { 3, 0, 0, 0 });
+            numSegments.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
+            numSegments.Value = new decimal(new int[] { 12, 0, 0, 0 });
+            numSegments.Name = "numSegments";
+            numSegments.Size = new Size(60, 23);
+            numSegments.TabIndex = 39;
+            // 
+            // lblSegments
+            // 
+            lblSegments.AutoSize = true;
+            lblSegments.Location = new Point(290, 273);
+            lblSegments.Name = "lblSegments";
+            lblSegments.Size = new Size(24, 15);
+            lblSegments.TabIndex = 40;
+            lblSegments.Text = "Дол:";
+            // 
+            // cmbRotationAxis
+            // 
+            cmbRotationAxis.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbRotationAxis.FormattingEnabled = true;
+            cmbRotationAxis.Items.AddRange(new object[] { "X", "Y", "Z" });
+            cmbRotationAxis.Location = new Point(235, 270);
+            cmbRotationAxis.Name = "cmbRotationAxis";
+            cmbRotationAxis.Size = new Size(50, 23);
+            cmbRotationAxis.TabIndex = 38;
+            cmbRotationAxis.SelectedIndex = 1;
+            // 
+            // lblAxis
+            // 
+            lblAxis.AutoSize = true;
+            lblAxis.Location = new Point(200, 273);
+            lblAxis.Name = "lblAxis";
+            lblAxis.Size = new Size(28, 15);
+            lblAxis.TabIndex = 37;
+            lblAxis.Text = "Ось:";
+            // 
+            // btnClearPoints
+            // 
+            btnClearPoints.Location = new Point(295, 230);
+            btnClearPoints.Name = "btnClearPoints";
+            btnClearPoints.Size = new Size(85, 30);
+            btnClearPoints.TabIndex = 36;
+            btnClearPoints.Text = "Очистить";
+            btnClearPoints.UseVisualStyleBackColor = true;
+            btnClearPoints.Click += btnClearPoints_Click;
+            // 
+            // btnAddPoint
+            // 
+            btnAddPoint.Location = new Point(200, 230);
+            btnAddPoint.Name = "btnAddPoint";
+            btnAddPoint.Size = new Size(85, 30);
+            btnAddPoint.TabIndex = 35;
+            btnAddPoint.Text = "Добавить";
+            btnAddPoint.UseVisualStyleBackColor = true;
+            btnAddPoint.Click += btnAddPoint_Click;
+            // 
+            // dgvProfile
+            // 
+            dgvProfile.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvProfile.Columns.Add("X", "X");
+            dgvProfile.Columns.Add("Y", "Y");
+            dgvProfile.Columns.Add("Z", "Z");
+            dgvProfile.Location = new Point(200, 70);
+            dgvProfile.Name = "dgvProfile";
+            dgvProfile.Size = new Size(180, 150);
+            dgvProfile.TabIndex = 34;
+            // 
             // btn_Surface
             // 
             btn_Surface.Location = new Point(12, 299);
             btn_Surface.Name = "btn_Surface";
             btn_Surface.Size = new Size(118, 23);
             btn_Surface.TabIndex = 33;
-            btn_Surface.Text = "Построить";
+            btn_Surface.Text = "Построить поверхность";
             btn_Surface.UseVisualStyleBackColor = true;
             btn_Surface.Click += btn_Surface_Click;
             // 
@@ -1041,6 +1181,8 @@
             gb_lab6.ResumeLayout(false);
             gb_lab7.ResumeLayout(false);
             gb_lab7.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvProfile).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numSegments).EndInit();
             ((System.ComponentModel.ISupportInitialize)numNY).EndInit();
             ((System.ComponentModel.ISupportInitialize)numNX).EndInit();
             ((System.ComponentModel.ISupportInitialize)numY1).EndInit();
@@ -1051,28 +1193,6 @@
             PerformLayout();
         }
 
-        private System.Windows.Forms.Button btn_modelSave;
-
-		private System.Windows.Forms.Button btn_modelLoad;
-
-		private System.Windows.Forms.GroupBox gb_lab7;
-		private System.Windows.Forms.Button btn_lab6;
-		private System.Windows.Forms.Button btn_lab7;
-
-		private System.Windows.Forms.GroupBox gb_lab6;
-
         #endregion
-        private ComboBox cmbFunction;
-        private Label label1;
-        private NumericUpDown numY1;
-        private NumericUpDown numY0;
-        private Label label3;
-        private NumericUpDown numX1;
-        private NumericUpDown numX0;
-        private Label label2;
-        private NumericUpDown numNY;
-        private NumericUpDown numNX;
-        private Label label4;
-        private Button btn_Surface;
     }
 }

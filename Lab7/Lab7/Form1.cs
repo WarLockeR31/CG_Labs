@@ -456,5 +456,88 @@ namespace Lab7
                 pb.Invalidate();
             }
         }
+
+        // Обработчики для фигуры вращения:
+        private void btnAddPoint_Click(object sender, EventArgs e)
+        {
+            dgvProfile.Rows.Add(0, 0, 0);
+        }
+
+        private void btnClearPoints_Click(object sender, EventArgs e)
+        {
+            dgvProfile.Rows.Clear();
+        }
+
+        private void btnAddSample_Click(object sender, EventArgs e)
+        {
+            // Пример профиля для тора (круг в плоскости XY)
+            dgvProfile.Rows.Clear();
+
+            // Создаем круг из 8 точек
+            int points = 8;
+            double radius = 1.0;
+            double centerX = 3.0; // Смещение от центра для тора
+
+            for (int i = 0; i < points; i++)
+            {
+                double angle = 2 * Math.PI * i / points;
+                double x = centerX + radius * Math.Cos(angle);
+                double y = radius * Math.Sin(angle);
+                double z = 0;
+                dgvProfile.Rows.Add(Math.Round(x, 2), Math.Round(y, 2), Math.Round(z, 2));
+            }
+        }
+
+        private void btnBuildRotation_Click(object sender, EventArgs e)
+        {
+            if (dgvProfile.Rows.Count < 2)
+            {
+                MessageBox.Show("Добавьте хотя бы 2 точки профиля");
+                return;
+            }
+
+            try
+            {
+                // Считываем точки профиля
+                var profile = new List<Vec3>();
+                foreach (DataGridViewRow row in dgvProfile.Rows)
+                {
+                    if (row.IsNewRow) continue;
+
+                    double x = Convert.ToDouble(row.Cells[0].Value ?? 0);
+                    double y = Convert.ToDouble(row.Cells[1].Value ?? 0);
+                    double z = Convert.ToDouble(row.Cells[2].Value ?? 0);
+                    profile.Add(new Vec3(x, y, z));
+                }
+
+                // Получаем параметры
+                var axis = cmbRotationAxis.SelectedItem?.ToString() switch
+                {
+                    "X" => Axis.X,
+                    "Y" => Axis.Y,
+                    "Z" => Axis.Z,
+                    _ => Axis.Y
+                };
+
+                int segments = (int)numSegments.Value;
+
+                // Строим фигуру вращения
+                var poly = RotationSurface.Create(profile, axis, segments);
+                if (poly != null)
+                {
+                    _renderer.Model = poly;
+                    btn_modelSave.Enabled = true;
+                    pb.Invalidate();
+
+                    MessageBox.Show($"Фигура вращения построена!\nВершин: {poly.Vertices.Count}\nГраней: {poly.Faces.Count}",
+                                  "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка построения: {ex.Message}", "Ошибка",
+                               MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
     }
 }
