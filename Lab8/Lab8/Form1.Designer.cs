@@ -191,6 +191,12 @@
             btn_lab6 = new Button();
             btn_lab7 = new Button();
             gb_lab8 = new GroupBox();
+            btn_normalsDisplay = new Button();
+            btn_cullBackfaces = new Button();
+            lbl_camYaw = new Label();
+            tb_camYaw = new TrackBar();
+            lbl_camPitch = new Label();
+            tb_camPitch = new TrackBar();
             btn_lab8 = new Button();
             ((System.ComponentModel.ISupportInitialize)pb).BeginInit();
             ((System.ComponentModel.ISupportInitialize)tb_FOV).BeginInit();
@@ -225,6 +231,9 @@
             ((System.ComponentModel.ISupportInitialize)numY0).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numX1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numX0).BeginInit();
+            gb_lab8.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)tb_camYaw).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)tb_camPitch).BeginInit();
             SuspendLayout();
             // 
             // pb
@@ -1155,11 +1164,93 @@
             // 
             // gb_lab8
             // 
+            gb_lab8.Controls.Add(btn_normalsDisplay);
+            gb_lab8.Controls.Add(btn_cullBackfaces);
+            gb_lab8.Controls.Add(lbl_camYaw);
+            gb_lab8.Controls.Add(tb_camYaw);
+            gb_lab8.Controls.Add(lbl_camPitch);
+            gb_lab8.Controls.Add(tb_camPitch);
             gb_lab8.Location = new Point(577, 268);
             gb_lab8.Name = "gb_lab8";
             gb_lab8.Size = new Size(391, 476);
             gb_lab8.TabIndex = 19;
             gb_lab8.TabStop = false;
+            // 
+            // btn_normalsDisplay
+            // 
+            btn_normalsDisplay.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btn_normalsDisplay.Location = new Point(200, 126);
+            btn_normalsDisplay.Name = "btn_normalsDisplay";
+            btn_normalsDisplay.Size = new Size(185, 54);
+            btn_normalsDisplay.TabIndex = 25;
+            btn_normalsDisplay.Text = "Face Normals: Off";
+            btn_normalsDisplay.UseVisualStyleBackColor = true;
+            btn_normalsDisplay.Click += btn_normalsDisplay_Click;
+            // 
+            // btn_cullBackfaces
+            // 
+            btn_cullBackfaces.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btn_cullBackfaces.Location = new Point(0, 125);
+            btn_cullBackfaces.Name = "btn_cullBackfaces";
+            btn_cullBackfaces.Size = new Size(194, 54);
+            btn_cullBackfaces.TabIndex = 24;
+            btn_cullBackfaces.Text = "Backface Culling: On";
+            btn_cullBackfaces.UseVisualStyleBackColor = true;
+            btn_cullBackfaces.Click += btn_cullBackfaces_Click;
+            // 
+            // lbl_camYaw
+            // 
+            lbl_camYaw.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            lbl_camYaw.Font = new Font("Segoe UI", 9.6F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            lbl_camYaw.Location = new Point(231, 75);
+            lbl_camYaw.Name = "lbl_camYaw";
+            lbl_camYaw.Size = new Size(129, 51);
+            lbl_camYaw.TabIndex = 23;
+            lbl_camYaw.Text = "Yaw: 70";
+            lbl_camYaw.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // tb_camYaw
+            // 
+            tb_camYaw.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            tb_camYaw.CausesValidation = false;
+            tb_camYaw.LargeChange = 10;
+            tb_camYaw.Location = new Point(0, 75);
+            tb_camYaw.Margin = new Padding(3, 4, 3, 4);
+            tb_camYaw.Maximum = 180;
+            tb_camYaw.Minimum = -180;
+            tb_camYaw.Name = "tb_camYaw";
+            tb_camYaw.Size = new Size(226, 56);
+            tb_camYaw.TabIndex = 22;
+            tb_camYaw.TickStyle = TickStyle.None;
+            tb_camYaw.Value = 70;
+            tb_camYaw.Scroll += tb_camYaw_Scroll;
+            // 
+            // lbl_camPitch
+            // 
+            lbl_camPitch.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            lbl_camPitch.Font = new Font("Segoe UI", 9.6F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            lbl_camPitch.Location = new Point(231, 19);
+            lbl_camPitch.Name = "lbl_camPitch";
+            lbl_camPitch.Size = new Size(129, 51);
+            lbl_camPitch.TabIndex = 21;
+            lbl_camPitch.Text = "Pitch: 70";
+            lbl_camPitch.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // tb_camPitch
+            // 
+            tb_camPitch.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            tb_camPitch.CausesValidation = false;
+            tb_camPitch.LargeChange = 10;
+            tb_camPitch.Location = new Point(0, 19);
+            tb_camPitch.Margin = new Padding(3, 4, 3, 4);
+            tb_camPitch.Maximum = 180;
+            tb_camPitch.Minimum = -180;
+            tb_camPitch.Name = "tb_camPitch";
+            tb_camPitch.Size = new Size(226, 56);
+            tb_camPitch.TabIndex = 21;
+            tb_camPitch.TickStyle = TickStyle.None;
+            tb_camPitch.Value = 70;
+            tb_camPitch.Scroll += tb_camPitch_Scroll;
             // 
             // btn_lab8
             // 
@@ -1238,6 +1329,10 @@
             ((System.ComponentModel.ISupportInitialize)numY0).EndInit();
             ((System.ComponentModel.ISupportInitialize)numX1).EndInit();
             ((System.ComponentModel.ISupportInitialize)numX0).EndInit();
+            gb_lab8.ResumeLayout(false);
+            gb_lab8.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)tb_camYaw).EndInit();
+            ((System.ComponentModel.ISupportInitialize)tb_camPitch).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -1247,5 +1342,11 @@
         #endregion
 
         private Button btn_lab8;
+        private Label lbl_camPitch;
+        private TrackBar tb_camPitch;
+        private Label lbl_camYaw;
+        private TrackBar tb_camYaw;
+        private Button btn_cullBackfaces;
+        private Button btn_normalsDisplay;
     }
 }

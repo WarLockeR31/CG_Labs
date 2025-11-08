@@ -39,6 +39,12 @@ namespace Lab8
 
             cmbAxis.SelectedIndex = 0;
 
+
+            tb_camYaw.Value = (int)_renderer.YawDegrees;
+            lbl_camYaw.Text = "Yaw: " + (int)_renderer.YawDegrees;
+
+            tb_camPitch.Value = (int)_renderer.PitchDegrees;
+            lbl_camPitch.Text = "Pitch: " + (int)_renderer.PitchDegrees;
         }
 
         private void pb_Paint(object sender, PaintEventArgs e)
@@ -549,6 +555,28 @@ namespace Lab8
             }
         }
 
-        
+        private void tb_camPitch_Scroll(object sender, EventArgs e)
+        {
+            _renderer.PitchDegrees = tb_camPitch.Value;
+            lbl_camPitch.Text = "Pitch: " + tb_camPitch.Value;
+        }
+
+        private void tb_camYaw_Scroll(object sender, EventArgs e)
+        {
+            _renderer.YawDegrees = tb_camYaw.Value;
+            lbl_camYaw.Text = "Yaw: " + tb_camYaw.Value;
+        }
+
+        private void btn_cullBackfaces_Click(object sender, EventArgs e)
+        {
+            _renderer.CullBackFaces = !_renderer.CullBackFaces;
+            btn_cullBackfaces.Text = "Backface Culling: " + (_renderer.CullBackFaces ? "On" : "Off");
+        }
+
+        private void btn_normalsDisplay_Click(object sender, EventArgs e)
+        {
+            _renderer.ShowFaceNormals = !_renderer.ShowFaceNormals;
+            btn_normalsDisplay.Text = "Face Normals: " + (_renderer.ShowFaceNormals ? "On" : "Off");
+        }
     }
 }

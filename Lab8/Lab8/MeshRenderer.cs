@@ -76,7 +76,7 @@ public sealed class MeshRenderer
 	public bool DrawBackVertices { get; set; } = false;
 
     // Normals
-    public bool ShowFaceNormals { get; set; } = true;
+    public bool ShowFaceNormals { get; set; } = false;
     public Pen NormalPen		{ get; set; } = Pens.MediumVioletRed;
     public double NormalLength	{ get; set; } = 20.0;
 
