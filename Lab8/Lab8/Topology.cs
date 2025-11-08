@@ -14,14 +14,76 @@ public sealed class Polyhedron
 	public List<Vec3> Vertices = new();
 	public readonly List<Face> Faces = new();
 
+    public List<Vec3>? VertexNormals;
 
-	public Polyhedron(IEnumerable<Vec3> vertices, IEnumerable<Face> faces)
+
+    public Polyhedron(IEnumerable<Vec3> vertices, IEnumerable<Face> faces)
 	{
 		Vertices.AddRange(vertices);
 		Faces.AddRange(faces);
 	}
 
-	public static Polyhedron RegularTetrahedron(double scale = 1.0)
+    public void GenerateVertexNormals(double creaseAngleDeg = 180.0, bool angleWeighted = true)
+    {
+        int n = Vertices.Count;
+        var sums = new Vec3[n];
+        var adjFaceNormals = new List<Vec3>[n];
+        for (int i = 0; i < n; i++) adjFaceNormals[i] = new List<Vec3>();
+
+        // 1) посчитаем нормаль каждой грани (поддерживаем n-угольники через фан-триангуляцию)
+        var faceNormals = new Vec3[Faces.Count];
+        for (int fi = 0; fi < Faces.Count; fi++)
+        {
+            var idx = Faces[fi].Indices;
+            if (idx.Length < 3) { faceNormals[fi] = Vec3.Zero; continue; }
+
+            var A = Vertices[idx[0]];
+            Vec3 nrm = Vec3.Zero;
+            for (int k = 1; k + 1 < idx.Length; k++)
+            {
+                var B = Vertices[idx[k]];
+                var C = Vertices[idx[k + 1]];
+                nrm += Vec3Math.Cross(B - A, C - A);
+            }
+            nrm = nrm.Normalize();
+            faceNormals[fi] = nrm;
+
+            foreach (var vi in idx)
+                adjFaceNormals[vi].Add(nrm);
+        }
+
+        // 2) накапливаем в вершинах (с учётом «жёсткого» угла)
+        double creaseRad = Math.PI * Math.Clamp(creaseAngleDeg, 0.0, 180.0) / 180.0;
+
+        for (int vi = 0; vi < n; vi++)
+        {
+            var facesN = adjFaceNormals[vi];
+            if (facesN.Count == 0) { sums[vi] = Vec3.UnitY; continue; }
+
+            // первичный усреднённый
+            Vec3 avg = facesN.Aggregate(Vec3.Zero, (acc, fn) => acc + fn).Normalize();
+
+            // фильтрация по порогу
+            Vec3 accN = Vec3.Zero;
+            foreach (var fn in facesN)
+            {
+                double dot = Math.Clamp(Vec3Math.Dot(fn, avg), -1.0, 1.0);
+                double ang = Math.Acos(dot);
+                if (ang <= creaseRad)
+                {
+                    double w = 1.0;
+                    if (angleWeighted) w = 1.0; // можно усложнить при желании
+                    accN += fn * w;
+                }
+            }
+            if (accN == Vec3.Zero) accN = avg;
+            sums[vi] = accN.Normalize();
+        }
+
+        VertexNormals = sums.ToList();
+    }
+
+    public static Polyhedron RegularTetrahedron(double scale = 1.0)
 	{
 		// Symmetric tetra: corners of a cube with even number of negatives
 		var v = new List<Vec3>

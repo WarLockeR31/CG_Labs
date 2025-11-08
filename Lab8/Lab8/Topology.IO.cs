@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Text;
 using MathPrimitives;
@@ -36,6 +36,19 @@ namespace Topology.IO
                 w.Write(v.Y.ToString("R", CI)); w.Write(' ');
                 w.WriteLine(v.Z.ToString("R", CI));
             }
+
+            bool hasVN = mesh.VertexNormals is { Count: > 0 } && mesh.VertexNormals.Count == mesh.Vertices.Count;
+            if (hasVN)
+            {
+                foreach (var n in mesh.VertexNormals!)
+                {
+                    w.Write("vn ");
+                    w.Write(n.X.ToString("R", CI)); w.Write(' ');
+                    w.Write(n.Y.ToString("R", CI)); w.Write(' ');
+                    w.WriteLine(n.Z.ToString("R", CI));
+                }
+            }
+
 
             // f lines
             foreach (var f in mesh.Faces)
@@ -75,6 +88,9 @@ namespace Topology.IO
             var vertices = new List<Vec3>();
             var faces = new List<Face>();
 
+            var normals = new List<Vec3>();          
+            var vnRefs = new List<(int v, int n)>();
+
             string? line;
             while ((line = r.ReadLine()) is not null)
             {
@@ -102,6 +118,15 @@ namespace Topology.IO
                         vertices.Add(new Vec3(x, y, z));
                         break;
 
+                    case "vn":
+                        if (parts.Length < 4) throw new FormatException($"Invalid normal line: '{line}'");
+                        double nx = double.Parse(parts[1], CI);
+                        double ny = double.Parse(parts[2], CI);
+                        double nz = double.Parse(parts[3], CI);
+                        var nrm = new Vec3(nx, ny, nz).Normalize();
+                        normals.Add(nrm);
+                        break;
+
                     case "f":
                         // f a b c [d ...], tokens may be like "3", "3/2/1", "3//1", "-1"
                         if (parts.Length < 4)
@@ -110,10 +135,14 @@ namespace Topology.IO
                         var idx = new int[parts.Length - 1];
                         for (int i = 1; i < parts.Length; i++)
                         {
-                            idx[i - 1] = ParseObjVertexIndex(parts[i], vertices.Count);
+                            string tok = parts[i];
+                            idx[i - 1] = ParseObjVertexIndex(tok, vertices.Count);
                             if ((uint)idx[i - 1] >= (uint)vertices.Count)
                                 throw new IndexOutOfRangeException(
                                     $"Face vertex index resolves out of range: {parts[i]} -> {idx[i - 1]} (verts={vertices.Count})");
+                            
+                            int vn = ParseObjNormalIndexOrMinusOne(tok, normals.Count);
+                            if (vn >= 0) vnRefs.Add((idx[i - 1], vn));
                         }
                         faces.Add(new Face(idx));
                         break;
@@ -124,7 +153,30 @@ namespace Topology.IO
                 }
             }
 
-            return new Polyhedron(vertices, faces);
+            var mesh = new Polyhedron(vertices, faces);
+
+            if (vnRefs.Count > 0 && normals.Count > 0)
+            {
+                var sums = new Vec3[vertices.Count];
+                var cnt = new int[vertices.Count];
+                foreach (var (v, n) in vnRefs)
+                {
+                    sums[v] += normals[n];
+                    cnt[v] += 1;
+                }
+                mesh.VertexNormals = new List<Vec3>(vertices.Count);
+                for (int i = 0; i < vertices.Count; i++)
+                {
+                    var nrm = cnt[i] > 0 ? (sums[i] / cnt[i]).Normalize() : Vec3.UnitY;
+                    mesh.VertexNormals.Add(nrm);
+                }
+            }
+            else
+            {
+                mesh.GenerateVertexNormals(180.0);
+            }
+
+            return mesh;
         }
 
         /// <summary>
@@ -135,7 +187,6 @@ namespace Topology.IO
         /// </summary>
         private static int ParseObjVertexIndex(string token, int vertexCount)
         {
-            // token like "3", "3/2", "3//1", "-1", "-5/7/9"
             string vStr = token;
             int slash = token.IndexOf('/');
             if (slash >= 0)
@@ -146,9 +197,25 @@ namespace Topology.IO
 
             int raw = int.Parse(vStr, CI);
 
-            if (raw > 0) return raw - 1;              // 1-based -> 0-based
-            if (raw < 0) return vertexCount + raw;     // -1 is last defined vertex
+            if (raw > 0) return raw - 1;              
+            if (raw < 0) return vertexCount + raw;     
             throw new FormatException("OBJ vertex index cannot be 0.");
+        }
+
+        private static int ParseObjNormalIndexOrMinusOne(string token, int normalCount)
+        {
+            int s1 = token.IndexOf('/');
+            if (s1 < 0) return -1;
+            int s2 = token.IndexOf('/', s1 + 1);
+            if (s2 < 0) return -1;
+
+            string vnStr = token[(s2 + 1)..];
+            if (string.IsNullOrEmpty(vnStr)) return -1;
+
+            int raw = int.Parse(vnStr, CI);
+            if (raw > 0) return raw - 1;
+            if (raw < 0) return normalCount + raw; // -1 → последний
+            throw new FormatException("OBJ normal index cannot be 0.");
         }
     }
 }

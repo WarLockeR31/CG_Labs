@@ -322,13 +322,22 @@ namespace Lab8
             btn_lab7.Enabled = false;
         }
 
+        private void btn_lab8_Click(object sender, EventArgs e)
+        {
+            ResetLabGroupBoxes();
+            gb_lab8.Visible = true;
+            btn_lab8.Enabled = false;
+        }
+
         private void ResetLabGroupBoxes()
         {
             gb_lab6.Visible = false;
             gb_lab7.Visible = false;
+            gb_lab8.Visible = false;
 
             btn_lab6.Enabled = true;
             btn_lab7.Enabled = true;
+            btn_lab8.Enabled = true;
         }
 
 
@@ -539,5 +548,7 @@ namespace Lab8
                                MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        
     }
 }

@@ -25,13 +25,37 @@ public sealed class MeshRenderer
 		set
 		{
 			_distance = -value;
-			ViewTransform = Mat4.Translation(0, 0, _distance);
-		}
+            UpdateViewTransform();
+        }
 	}
 
+    public double YawDegrees
+    {
+        get => _yawDeg;
+        set 
+		{ 
+			_yawDeg = value; 
+			UpdateViewTransform(); 
+		}
+    }
 
-	// Рисовальные настройки
-	public bool		Wireframe		{ get; set; } = true;
+    public double PitchDegrees
+    {
+        get => _pitchDeg;
+        set
+        {
+            // небольшой клип, чтобы не переворачиваться
+            _pitchDeg = Math.Clamp(value, -89.9, 89.9);
+            UpdateViewTransform();
+        }
+    }
+
+    public Vec3 ViewDirection => _viewDir;
+
+
+
+    // Рисовальные настройки
+    public bool		Wireframe		{ get; set; } = true;
 	public Pen		WirePen			{ get; set; } = Pens.Black;
 	public Brush	VertexBrush		{ get; set; } = Brushes.Firebrick;
 	public float	VertexRadius	{ get; set; } = 3f;
@@ -42,12 +66,24 @@ public sealed class MeshRenderer
 	public Pen		GridPen			{ get; set; } = Pens.Silver;
 	public Pen		AxisPen			{ get; set; } = Pens.DimGray;
 	
-	private double _distance = StandardDistance;
+	private double	_distance	= StandardDistance;
+    private Vec3	_viewDir	= new Vec3(0, 0, -1);
+    private double	_yawDeg		= 45.0;
+    private double	_pitchDeg	= 35.26438968;
 
-	public MeshRenderer()
+    // Backface culling
+    public bool CullBackFaces	{ get; set; } = true;
+	public bool DrawBackVertices { get; set; } = false;
+
+    // Normals
+    public bool ShowFaceNormals { get; set; } = true;
+    public Pen NormalPen		{ get; set; } = Pens.MediumVioletRed;
+    public double NormalLength	{ get; set; } = 20.0;
+
+    public MeshRenderer()
 	{
-		//Model.Vertices = Model.Vertices.Select(x => x + Vec3.UnitX * 10 + Vec3.UnitY * 7).ToList();
-	}
+        UpdateViewTransform();
+    }
 	
 	public void ApplyModelTransformWorld(Mat4 m) => ModelTransform = m * ModelTransform;
 	public void ApplyModelTransformLocal(Mat4 m) => ModelTransform = ModelTransform * m;
@@ -56,7 +92,9 @@ public sealed class MeshRenderer
 	{
 		ModelTransform = Mat4.Identity;
 		ViewTransform  = Mat4.Translation(0, 0, _distance);
-	}
+        _yawDeg = 45.0;
+        _pitchDeg = 35.26438968;
+    }
 	
 	public Vec3[] CurModelTransform() => Model.Vertices.Select(v => ModelTransform.TransformPoint(v)).ToArray();
 	
@@ -67,7 +105,7 @@ public sealed class MeshRenderer
 
 		g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-		var viewWorld = ViewTransform * Mat4.IsometricRotation();
+		var viewWorld = ViewTransform;
 		var world = viewWorld * ModelTransform;
 		var transformed = Model.Vertices.Select(v => world.TransformPoint(v)).ToArray();
 		Mat4 proj;
@@ -99,29 +137,70 @@ public sealed class MeshRenderer
 			DrawGridXZ(g, viewport, viewWorld, proj);
 		}
 
-		if (Wireframe)
-		{
-			foreach (var face in Model.Faces)
-			{
-				for (int i = 0; i < face.Indices.Length; i++)
-				{
-					int a = face.Indices[i];
-					int b = face.Indices[(i + 1) % face.Indices.Length];
-					var pa = screen[a];
-					var pb = screen[b];
-					g.DrawLine(WirePen, (float)pa.X, (float)pa.Y, (float)pb.X, (float)pb.Y);
-				}
-			}
-		}
+        if (Wireframe)
+        {
+            foreach (var face in Model.Faces)
+            {
+                if (CullBackFaces && !IsFaceFrontFacing(face, transformed, Projection))
+                    continue;
 
+                for (int i = 0; i < face.Indices.Length; i++)
+                {
+                    int a = face.Indices[i];
+                    int b = face.Indices[(i + 1) % face.Indices.Length];
+                    var pa = screen[a];
+                    var pb = screen[b];
+                    g.DrawLine(WirePen, (float)pa.X, (float)pa.Y, (float)pb.X, (float)pb.Y);
+                }
+            }
+        }
 
-		foreach (var p in screen)
-		{
-			var x = (float)p.X;
-			var y = (float)p.Y;
-			g.FillEllipse(VertexBrush, x - VertexRadius, y - VertexRadius, VertexRadius * 2, VertexRadius * 2);
-		}
-	}
+        if (ShowFaceNormals)
+        {
+            foreach (var face in Model.Faces)
+            {
+                if (!TryComputeFaceCenterAndNormal(face, transformed, out var c, out var n))
+                    continue;
+                if (CullBackFaces && !IsFaceFrontFacing(face, transformed, Projection))
+                    continue;
+
+                var tip = c + n * NormalLength;          
+                var cNdc = proj.TransformPoint(c);
+                var tipNdc = proj.TransformPoint(tip);
+
+                var cScr = ToViewport(cNdc, viewport);
+                var tipScr = ToViewport(tipNdc, viewport);
+
+                g.DrawLine(NormalPen, (float)cScr.X, (float)cScr.Y, (float)tipScr.X, (float)tipScr.Y);
+            }
+        }
+
+        bool[] vertexVisible;
+        if (!CullBackFaces)
+        {
+            vertexVisible = Enumerable.Repeat(true, Model.Vertices.Count).ToArray();
+        }
+        else
+        {
+            vertexVisible = new bool[Model.Vertices.Count];
+            foreach (var face in Model.Faces)
+            {
+                if (IsFaceFrontFacing(face, transformed, Projection))
+                    foreach (var vi in face.Indices) vertexVisible[vi] = true;
+            }
+        }
+
+        for (int i = 0; i < screen.Length; i++)
+        {
+            if (!vertexVisible[i]) 
+				continue;
+
+            var p = screen[i];
+            g.FillEllipse(VertexBrush,
+                (float)p.X - VertexRadius, (float)p.Y - VertexRadius,
+                VertexRadius * 2, VertexRadius * 2);
+        }
+    }
 	
 	private static Vec2[] ToViewport(IReadOnlyList<Vec3> ndc, Rectangle vp)
 	{
@@ -227,4 +306,65 @@ public sealed class MeshRenderer
 	    double sx = vp.Width * 0.5, sy = vp.Height * 0.5;
 	    return new Vec2(cx + xN * sx, cy - yN * sy);
 	}
+
+    private void UpdateViewTransform()
+    {
+        const double deg = Math.PI / 180.0;
+
+        var ry = Mat4.RotationY(_yawDeg * deg);
+        var rx = Mat4.RotationX(_pitchDeg * deg);
+
+        ViewTransform = Mat4.Translation(0, 0, _distance) * rx * ry;
+
+        var forward = (ry * rx).TransformPoint(new Vec3(0, 0, -1));
+        _viewDir = forward.Normalize();
+    }
+
+    #region Backface culling helpers
+
+    private static bool TryComputeFaceCenterAndNormal(in Face face, Vec3[] vView,
+                                                  out Vec3 center, out Vec3 normal)
+    {
+        var idx = face.Indices;
+        center = Vec3.Zero;
+        normal = Vec3.Zero;
+        if (idx.Length < 3) return false;
+
+        // центр – среднее по вершинам (в видовых координатах)
+        for (int i = 0; i < idx.Length; i++)
+            center += vView[idx[i]];
+        center = center / idx.Length;
+
+        // нормаль – фан-триангуляция (в видовых координатах)
+        var a = vView[idx[0]];
+        for (int k = 1; k + 1 < idx.Length; k++)
+        {
+            var b = vView[idx[k]];
+            var c = vView[idx[k + 1]];
+            normal += Vec3Math.Cross(b - a, c - a);
+        }
+        normal = normal.Normalize();
+        return normal != Vec3.Zero;
+    }
+
+    // Возвращает true, если грань фронт-фейсна (видима)
+    private static bool IsFaceFrontFacing(in Face face, Vec3[] vView, ProjectionType projType)
+    {
+        if (!TryComputeFaceCenterAndNormal(face, vView, out var c, out var n)) return false;
+
+        if (projType == ProjectionType.Perspective)
+        {
+            // камера в начале координат видового пространства, направление к камере ~ (-c)
+            // фронт-фейс, если нормаль направлена к камере: dot(n, -c) > 0  <=> dot(n, c) < 0
+            return Vec3Math.Dot(n, c) < 0.0;
+        }
+        else
+        {
+            // ортографическая проекция: постоянное направление взгляда (0,0,-1) в видовом
+            return Vec3Math.Dot(n, new Vec3(0, 0, -1)) < 0.0;
+        }
+    }
+
+
+    #endregion
 }

@@ -110,6 +110,9 @@
         /// </summary>
         private void InitializeComponent()
         {
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
             pb = new PictureBox();
             btn_Projection = new Button();
             tb_FOV = new TrackBar();
@@ -187,6 +190,8 @@
             btn_modelLoad = new Button();
             btn_lab6 = new Button();
             btn_lab7 = new Button();
+            gb_lab8 = new GroupBox();
+            btn_lab8 = new Button();
             ((System.ComponentModel.ISupportInitialize)pb).BeginInit();
             ((System.ComponentModel.ISupportInitialize)tb_FOV).BeginInit();
             ((System.ComponentModel.ISupportInitialize)tb_Distance).BeginInit();
@@ -212,8 +217,8 @@
             ((System.ComponentModel.ISupportInitialize)numParallelAngle).BeginInit();
             gb_lab6.SuspendLayout();
             gb_lab7.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvProfile).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numSegments).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvProfile).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numNY).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numNX).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numY1).BeginInit();
@@ -230,7 +235,7 @@
             pb.Location = new Point(14, 16);
             pb.Margin = new Padding(3, 4, 3, 4);
             pb.Name = "pb";
-            pb.Size = new Size(757, 728);
+            pb.Size = new Size(557, 736);
             pb.TabIndex = 0;
             pb.TabStop = false;
             pb.Paint += pb_Paint;
@@ -239,8 +244,8 @@
             // 
             btn_Projection.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btn_Projection.BackColor = SystemColors.ControlLightLight;
-            btn_Projection.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            btn_Projection.Location = new Point(777, 16);
+            btn_Projection.Font = new Font("Segoe UI", 9.6F, FontStyle.Bold);
+            btn_Projection.Location = new Point(577, 16);
             btn_Projection.Margin = new Padding(3, 4, 3, 4);
             btn_Projection.Name = "btn_Projection";
             btn_Projection.Size = new Size(270, 44);
@@ -254,12 +259,12 @@
             tb_FOV.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             tb_FOV.CausesValidation = false;
             tb_FOV.LargeChange = 10;
-            tb_FOV.Location = new Point(777, 64);
+            tb_FOV.Location = new Point(577, 64);
             tb_FOV.Margin = new Padding(3, 4, 3, 4);
             tb_FOV.Maximum = 180;
             tb_FOV.Minimum = 1;
             tb_FOV.Name = "tb_FOV";
-            tb_FOV.Size = new Size(226, 45);
+            tb_FOV.Size = new Size(226, 56);
             tb_FOV.TabIndex = 2;
             tb_FOV.TickStyle = TickStyle.None;
             tb_FOV.Value = 70;
@@ -268,8 +273,8 @@
             // lbl_FOV
             // 
             lbl_FOV.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            lbl_FOV.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            lbl_FOV.Location = new Point(1011, 64);
+            lbl_FOV.Font = new Font("Segoe UI", 9.6F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            lbl_FOV.Location = new Point(811, 64);
             lbl_FOV.Name = "lbl_FOV";
             lbl_FOV.Size = new Size(160, 51);
             lbl_FOV.TabIndex = 3;
@@ -279,8 +284,8 @@
             // lbl_Distance
             // 
             lbl_Distance.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            lbl_Distance.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            lbl_Distance.Location = new Point(1008, 115);
+            lbl_Distance.Font = new Font("Segoe UI", 9.6F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            lbl_Distance.Location = new Point(808, 115);
             lbl_Distance.Name = "lbl_Distance";
             lbl_Distance.Size = new Size(160, 51);
             lbl_Distance.TabIndex = 5;
@@ -292,12 +297,12 @@
             tb_Distance.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             tb_Distance.CausesValidation = false;
             tb_Distance.LargeChange = 10;
-            tb_Distance.Location = new Point(777, 115);
+            tb_Distance.Location = new Point(577, 115);
             tb_Distance.Margin = new Padding(3, 4, 3, 4);
             tb_Distance.Maximum = 500;
             tb_Distance.Minimum = 1;
             tb_Distance.Name = "tb_Distance";
-            tb_Distance.Size = new Size(226, 45);
+            tb_Distance.Size = new Size(226, 56);
             tb_Distance.TabIndex = 4;
             tb_Distance.TickStyle = TickStyle.None;
             tb_Distance.Value = 200;
@@ -307,8 +312,8 @@
             // 
             btn_Tetra.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btn_Tetra.BackColor = SystemColors.ControlLightLight;
-            btn_Tetra.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            btn_Tetra.Location = new Point(777, 169);
+            btn_Tetra.Font = new Font("Segoe UI", 9.6F, FontStyle.Bold);
+            btn_Tetra.Location = new Point(577, 169);
             btn_Tetra.Margin = new Padding(3, 4, 3, 4);
             btn_Tetra.Name = "btn_Tetra";
             btn_Tetra.Size = new Size(73, 44);
@@ -321,8 +326,8 @@
             // 
             btn_Octa.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btn_Octa.BackColor = SystemColors.ControlLightLight;
-            btn_Octa.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            btn_Octa.Location = new Point(937, 169);
+            btn_Octa.Font = new Font("Segoe UI", 9.6F, FontStyle.Bold);
+            btn_Octa.Location = new Point(737, 169);
             btn_Octa.Margin = new Padding(3, 4, 3, 4);
             btn_Octa.Name = "btn_Octa";
             btn_Octa.Size = new Size(73, 44);
@@ -335,8 +340,8 @@
             // 
             btn_Hexa.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btn_Hexa.BackColor = SystemColors.ControlLightLight;
-            btn_Hexa.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            btn_Hexa.Location = new Point(857, 169);
+            btn_Hexa.Font = new Font("Segoe UI", 9.6F, FontStyle.Bold);
+            btn_Hexa.Location = new Point(657, 169);
             btn_Hexa.Margin = new Padding(3, 4, 3, 4);
             btn_Hexa.Name = "btn_Hexa";
             btn_Hexa.Size = new Size(73, 44);
@@ -349,8 +354,8 @@
             // 
             btn_Ico.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btn_Ico.BackColor = SystemColors.ControlLightLight;
-            btn_Ico.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            btn_Ico.Location = new Point(1017, 169);
+            btn_Ico.Font = new Font("Segoe UI", 9.6F, FontStyle.Bold);
+            btn_Ico.Location = new Point(817, 169);
             btn_Ico.Margin = new Padding(3, 4, 3, 4);
             btn_Ico.Name = "btn_Ico";
             btn_Ico.Size = new Size(73, 44);
@@ -363,8 +368,8 @@
             // 
             btn_Dode.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btn_Dode.BackColor = SystemColors.ControlLightLight;
-            btn_Dode.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            btn_Dode.Location = new Point(1097, 169);
+            btn_Dode.Font = new Font("Segoe UI", 9.6F, FontStyle.Bold);
+            btn_Dode.Location = new Point(897, 169);
             btn_Dode.Margin = new Padding(3, 4, 3, 4);
             btn_Dode.Name = "btn_Dode";
             btn_Dode.Size = new Size(73, 44);
@@ -377,8 +382,8 @@
             // 
             btn_Reset.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btn_Reset.BackColor = SystemColors.ControlLightLight;
-            btn_Reset.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            btn_Reset.Location = new Point(1053, 16);
+            btn_Reset.Font = new Font("Segoe UI", 9.6F, FontStyle.Bold);
+            btn_Reset.Location = new Point(853, 16);
             btn_Reset.Margin = new Padding(3, 4, 3, 4);
             btn_Reset.Name = "btn_Reset";
             btn_Reset.Size = new Size(117, 44);
@@ -423,7 +428,7 @@
             numSZ.Maximum = new decimal(new int[] { 5, 0, 0, 0 });
             numSZ.Minimum = new decimal(new int[] { 1, 0, 0, 65536 });
             numSZ.Name = "numSZ";
-            numSZ.Size = new Size(46, 23);
+            numSZ.Size = new Size(46, 27);
             numSZ.TabIndex = 14;
             numSZ.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
@@ -436,7 +441,7 @@
             numSY.Maximum = new decimal(new int[] { 5, 0, 0, 0 });
             numSY.Minimum = new decimal(new int[] { 1, 0, 0, 65536 });
             numSY.Name = "numSY";
-            numSY.Size = new Size(46, 23);
+            numSY.Size = new Size(46, 27);
             numSY.TabIndex = 13;
             numSY.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
@@ -449,7 +454,7 @@
             numSX.Maximum = new decimal(new int[] { 5, 0, 0, 0 });
             numSX.Minimum = new decimal(new int[] { 1, 0, 0, 65536 });
             numSX.Name = "numSX";
-            numSX.Size = new Size(46, 23);
+            numSX.Size = new Size(46, 27);
             numSX.TabIndex = 12;
             numSX.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
@@ -469,7 +474,7 @@
             lblScale.AutoSize = true;
             lblScale.Location = new Point(11, 173);
             lblScale.Name = "lblScale";
-            lblScale.Size = new Size(62, 15);
+            lblScale.Size = new Size(75, 20);
             lblScale.TabIndex = 10;
             lblScale.Text = "Масштаб:";
             // 
@@ -478,9 +483,9 @@
             numRZ.Location = new Point(183, 97);
             numRZ.Margin = new Padding(3, 4, 3, 4);
             numRZ.Maximum = new decimal(new int[] { 180, 0, 0, 0 });
-            numRZ.Minimum = new decimal(new int[] { 180, 0, 0, -2147483648 });
+            numRZ.Minimum = new decimal(new int[] { 180, 0, 0, int.MinValue });
             numRZ.Name = "numRZ";
-            numRZ.Size = new Size(46, 23);
+            numRZ.Size = new Size(46, 27);
             numRZ.TabIndex = 9;
             numRZ.Value = new decimal(new int[] { 180, 0, 0, 0 });
             // 
@@ -489,9 +494,9 @@
             numRY.Location = new Point(131, 97);
             numRY.Margin = new Padding(3, 4, 3, 4);
             numRY.Maximum = new decimal(new int[] { 180, 0, 0, 0 });
-            numRY.Minimum = new decimal(new int[] { 180, 0, 0, -2147483648 });
+            numRY.Minimum = new decimal(new int[] { 180, 0, 0, int.MinValue });
             numRY.Name = "numRY";
-            numRY.Size = new Size(46, 23);
+            numRY.Size = new Size(46, 27);
             numRY.TabIndex = 8;
             numRY.Value = new decimal(new int[] { 180, 0, 0, 0 });
             // 
@@ -500,9 +505,9 @@
             numRX.Location = new Point(80, 97);
             numRX.Margin = new Padding(3, 4, 3, 4);
             numRX.Maximum = new decimal(new int[] { 180, 0, 0, 0 });
-            numRX.Minimum = new decimal(new int[] { 180, 0, 0, -2147483648 });
+            numRX.Minimum = new decimal(new int[] { 180, 0, 0, int.MinValue });
             numRX.Name = "numRX";
-            numRX.Size = new Size(46, 23);
+            numRX.Size = new Size(46, 27);
             numRX.TabIndex = 7;
             numRX.Value = new decimal(new int[] { 180, 0, 0, 0 });
             // 
@@ -522,7 +527,7 @@
             lblRotate.AutoSize = true;
             lblRotate.Location = new Point(11, 100);
             lblRotate.Name = "lblRotate";
-            lblRotate.Size = new Size(58, 15);
+            lblRotate.Size = new Size(73, 20);
             lblRotate.TabIndex = 5;
             lblRotate.Text = "Поворот:";
             // 
@@ -541,9 +546,9 @@
             // 
             numTZ.Location = new Point(183, 24);
             numTZ.Margin = new Padding(3, 4, 3, 4);
-            numTZ.Minimum = new decimal(new int[] { 100, 0, 0, -2147483648 });
+            numTZ.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numTZ.Name = "numTZ";
-            numTZ.Size = new Size(46, 23);
+            numTZ.Size = new Size(46, 27);
             numTZ.TabIndex = 3;
             numTZ.Value = new decimal(new int[] { 100, 0, 0, 0 });
             // 
@@ -551,9 +556,9 @@
             // 
             numTY.Location = new Point(131, 24);
             numTY.Margin = new Padding(3, 4, 3, 4);
-            numTY.Minimum = new decimal(new int[] { 100, 0, 0, -2147483648 });
+            numTY.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numTY.Name = "numTY";
-            numTY.Size = new Size(46, 23);
+            numTY.Size = new Size(46, 27);
             numTY.TabIndex = 2;
             numTY.Value = new decimal(new int[] { 100, 0, 0, 0 });
             // 
@@ -561,9 +566,9 @@
             // 
             numTX.Location = new Point(80, 24);
             numTX.Margin = new Padding(3, 4, 3, 4);
-            numTX.Minimum = new decimal(new int[] { 100, 0, 0, -2147483648 });
+            numTX.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numTX.Name = "numTX";
-            numTX.Size = new Size(46, 23);
+            numTX.Size = new Size(46, 27);
             numTX.TabIndex = 1;
             numTX.Value = new decimal(new int[] { 100, 0, 0, 0 });
             // 
@@ -572,7 +577,7 @@
             lblTranslate.AutoSize = true;
             lblTranslate.Location = new Point(11, 27);
             lblTranslate.Name = "lblTranslate";
-            lblTranslate.Size = new Size(70, 15);
+            lblTranslate.Size = new Size(86, 20);
             lblTranslate.TabIndex = 0;
             lblTranslate.Text = "Смещение:";
             // 
@@ -669,7 +674,7 @@
             lblArbitraryAxis.AutoSize = true;
             lblArbitraryAxis.Location = new Point(6, 113);
             lblArbitraryAxis.Name = "lblArbitraryAxis";
-            lblArbitraryAxis.Size = new Size(150, 15);
+            lblArbitraryAxis.Size = new Size(189, 20);
             lblArbitraryAxis.TabIndex = 15;
             lblArbitraryAxis.Text = "Произвольная ось (X,Y,Z):";
             // 
@@ -677,9 +682,9 @@
             // 
             numAxisX2.Location = new Point(80, 173);
             numAxisX2.Margin = new Padding(3, 4, 3, 4);
-            numAxisX2.Minimum = new decimal(new int[] { 100, 0, 0, -2147483648 });
+            numAxisX2.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numAxisX2.Name = "numAxisX2";
-            numAxisX2.Size = new Size(46, 23);
+            numAxisX2.Size = new Size(46, 27);
             numAxisX2.TabIndex = 14;
             numAxisX2.Value = new decimal(new int[] { 100, 0, 0, 0 });
             // 
@@ -687,9 +692,9 @@
             // 
             numAxisY2.Location = new Point(132, 173);
             numAxisY2.Margin = new Padding(3, 4, 3, 4);
-            numAxisY2.Minimum = new decimal(new int[] { 100, 0, 0, -2147483648 });
+            numAxisY2.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numAxisY2.Name = "numAxisY2";
-            numAxisY2.Size = new Size(46, 23);
+            numAxisY2.Size = new Size(46, 27);
             numAxisY2.TabIndex = 13;
             numAxisY2.Value = new decimal(new int[] { 100, 0, 0, 0 });
             // 
@@ -697,9 +702,9 @@
             // 
             numAxisZ2.Location = new Point(187, 173);
             numAxisZ2.Margin = new Padding(3, 4, 3, 4);
-            numAxisZ2.Minimum = new decimal(new int[] { 100, 0, 0, -2147483648 });
+            numAxisZ2.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numAxisZ2.Name = "numAxisZ2";
-            numAxisZ2.Size = new Size(46, 23);
+            numAxisZ2.Size = new Size(46, 27);
             numAxisZ2.TabIndex = 12;
             numAxisZ2.Value = new decimal(new int[] { 100, 0, 0, 0 });
             // 
@@ -707,9 +712,9 @@
             // 
             numAxisX1.Location = new Point(83, 138);
             numAxisX1.Margin = new Padding(3, 4, 3, 4);
-            numAxisX1.Minimum = new decimal(new int[] { 100, 0, 0, -2147483648 });
+            numAxisX1.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numAxisX1.Name = "numAxisX1";
-            numAxisX1.Size = new Size(46, 23);
+            numAxisX1.Size = new Size(46, 27);
             numAxisX1.TabIndex = 11;
             numAxisX1.Value = new decimal(new int[] { 100, 0, 0, 0 });
             // 
@@ -717,9 +722,9 @@
             // 
             numAxisY1.Location = new Point(135, 138);
             numAxisY1.Margin = new Padding(3, 4, 3, 4);
-            numAxisY1.Minimum = new decimal(new int[] { 100, 0, 0, -2147483648 });
+            numAxisY1.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numAxisY1.Name = "numAxisY1";
-            numAxisY1.Size = new Size(46, 23);
+            numAxisY1.Size = new Size(46, 27);
             numAxisY1.TabIndex = 10;
             numAxisY1.Value = new decimal(new int[] { 100, 0, 0, 0 });
             // 
@@ -727,9 +732,9 @@
             // 
             numAxisZ1.Location = new Point(187, 138);
             numAxisZ1.Margin = new Padding(3, 4, 3, 4);
-            numAxisZ1.Minimum = new decimal(new int[] { 100, 0, 0, -2147483648 });
+            numAxisZ1.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numAxisZ1.Name = "numAxisZ1";
-            numAxisZ1.Size = new Size(46, 23);
+            numAxisZ1.Size = new Size(46, 27);
             numAxisZ1.TabIndex = 9;
             numAxisZ1.Value = new decimal(new int[] { 100, 0, 0, 0 });
             // 
@@ -738,7 +743,7 @@
             lblAxisPoint2.AutoSize = true;
             lblAxisPoint2.Location = new Point(11, 177);
             lblAxisPoint2.Name = "lblAxisPoint2";
-            lblAxisPoint2.Size = new Size(52, 15);
+            lblAxisPoint2.Size = new Size(64, 20);
             lblAxisPoint2.TabIndex = 8;
             lblAxisPoint2.Text = "Точка 2:";
             // 
@@ -747,7 +752,7 @@
             lblAxisPoint1.AutoSize = true;
             lblAxisPoint1.Location = new Point(11, 138);
             lblAxisPoint1.Name = "lblAxisPoint1";
-            lblAxisPoint1.Size = new Size(52, 15);
+            lblAxisPoint1.Size = new Size(64, 20);
             lblAxisPoint1.TabIndex = 7;
             lblAxisPoint1.Text = "Точка 1:";
             // 
@@ -756,9 +761,9 @@
             numArbitraryAngle.Location = new Point(308, 138);
             numArbitraryAngle.Margin = new Padding(3, 4, 3, 4);
             numArbitraryAngle.Maximum = new decimal(new int[] { 180, 0, 0, 0 });
-            numArbitraryAngle.Minimum = new decimal(new int[] { 180, 0, 0, -2147483648 });
+            numArbitraryAngle.Minimum = new decimal(new int[] { 180, 0, 0, int.MinValue });
             numArbitraryAngle.Name = "numArbitraryAngle";
-            numArbitraryAngle.Size = new Size(46, 23);
+            numArbitraryAngle.Size = new Size(46, 27);
             numArbitraryAngle.TabIndex = 6;
             numArbitraryAngle.Value = new decimal(new int[] { 180, 0, 0, 0 });
             // 
@@ -767,7 +772,7 @@
             lblArbitraryAngle.AutoSize = true;
             lblArbitraryAngle.Location = new Point(258, 138);
             lblArbitraryAngle.Name = "lblArbitraryAngle";
-            lblArbitraryAngle.Size = new Size(36, 15);
+            lblArbitraryAngle.Size = new Size(44, 20);
             lblArbitraryAngle.TabIndex = 5;
             lblArbitraryAngle.Text = "Угол:";
             // 
@@ -790,7 +795,7 @@
             cmbAxis.Location = new Point(188, 33);
             cmbAxis.Margin = new Padding(3, 4, 3, 4);
             cmbAxis.Name = "cmbAxis";
-            cmbAxis.Size = new Size(45, 23);
+            cmbAxis.Size = new Size(45, 28);
             cmbAxis.TabIndex = 3;
             // 
             // numParallelAngle
@@ -798,9 +803,9 @@
             numParallelAngle.Location = new Point(83, 64);
             numParallelAngle.Margin = new Padding(3, 4, 3, 4);
             numParallelAngle.Maximum = new decimal(new int[] { 180, 0, 0, 0 });
-            numParallelAngle.Minimum = new decimal(new int[] { 180, 0, 0, -2147483648 });
+            numParallelAngle.Minimum = new decimal(new int[] { 180, 0, 0, int.MinValue });
             numParallelAngle.Name = "numParallelAngle";
-            numParallelAngle.Size = new Size(46, 23);
+            numParallelAngle.Size = new Size(46, 27);
             numParallelAngle.TabIndex = 2;
             numParallelAngle.Value = new decimal(new int[] { 180, 0, 0, 0 });
             // 
@@ -809,7 +814,7 @@
             lblParallelAngle.AutoSize = true;
             lblParallelAngle.Location = new Point(29, 71);
             lblParallelAngle.Name = "lblParallelAngle";
-            lblParallelAngle.Size = new Size(36, 15);
+            lblParallelAngle.Size = new Size(44, 20);
             lblParallelAngle.TabIndex = 1;
             lblParallelAngle.Text = "Угол:";
             // 
@@ -818,7 +823,7 @@
             lblParallelAxis.AutoSize = true;
             lblParallelAxis.Location = new Point(18, 36);
             lblParallelAxis.Name = "lblParallelAxis";
-            lblParallelAxis.Size = new Size(128, 15);
+            lblParallelAxis.Size = new Size(163, 20);
             lblParallelAxis.TabIndex = 0;
             lblParallelAxis.Text = "Ось через центр || OX:";
             // 
@@ -828,7 +833,7 @@
             gb_lab6.Controls.Add(grpReflection);
             gb_lab6.Controls.Add(grpTransform);
             gb_lab6.Controls.Add(grpRotationAdvanced);
-            gb_lab6.Location = new Point(777, 268);
+            gb_lab6.Location = new Point(577, 268);
             gb_lab6.Name = "gb_lab6";
             gb_lab6.Size = new Size(391, 476);
             gb_lab6.TabIndex = 15;
@@ -861,7 +866,7 @@
             gb_lab7.Controls.Add(cmbFunction);
             gb_lab7.Controls.Add(btn_modelSave);
             gb_lab7.Controls.Add(btn_modelLoad);
-            gb_lab7.Location = new Point(777, 268);
+            gb_lab7.Location = new Point(577, 268);
             gb_lab7.Name = "gb_lab7";
             gb_lab7.Size = new Size(391, 476);
             gb_lab7.TabIndex = 16;
@@ -892,18 +897,17 @@
             // 
             numSegments.Location = new Point(320, 270);
             numSegments.Minimum = new decimal(new int[] { 3, 0, 0, 0 });
-            numSegments.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
-            numSegments.Value = new decimal(new int[] { 12, 0, 0, 0 });
             numSegments.Name = "numSegments";
-            numSegments.Size = new Size(60, 23);
+            numSegments.Size = new Size(60, 27);
             numSegments.TabIndex = 39;
+            numSegments.Value = new decimal(new int[] { 12, 0, 0, 0 });
             // 
             // lblSegments
             // 
             lblSegments.AutoSize = true;
-            lblSegments.Location = new Point(290, 273);
+            lblSegments.Location = new Point(290, 269);
             lblSegments.Name = "lblSegments";
-            lblSegments.Size = new Size(24, 15);
+            lblSegments.Size = new Size(39, 20);
             lblSegments.TabIndex = 40;
             lblSegments.Text = "Дол:";
             // 
@@ -914,16 +918,15 @@
             cmbRotationAxis.Items.AddRange(new object[] { "X", "Y", "Z" });
             cmbRotationAxis.Location = new Point(235, 270);
             cmbRotationAxis.Name = "cmbRotationAxis";
-            cmbRotationAxis.Size = new Size(50, 23);
+            cmbRotationAxis.Size = new Size(50, 28);
             cmbRotationAxis.TabIndex = 38;
-            cmbRotationAxis.SelectedIndex = 1;
             // 
             // lblAxis
             // 
             lblAxis.AutoSize = true;
-            lblAxis.Location = new Point(200, 273);
+            lblAxis.Location = new Point(200, 269);
             lblAxis.Name = "lblAxis";
-            lblAxis.Size = new Size(28, 15);
+            lblAxis.Size = new Size(38, 20);
             lblAxis.TabIndex = 37;
             lblAxis.Text = "Ось:";
             // 
@@ -949,12 +952,34 @@
             // 
             // dgvProfile
             // 
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = SystemColors.Control;
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle1.ForeColor = SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
+            dgvProfile.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dgvProfile.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvProfile.Columns.Add("X", "X");
-            dgvProfile.Columns.Add("Y", "Y");
-            dgvProfile.Columns.Add("Z", "Z");
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = SystemColors.Window;
+            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dgvProfile.DefaultCellStyle = dataGridViewCellStyle2;
             dgvProfile.Location = new Point(200, 70);
             dgvProfile.Name = "dgvProfile";
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = SystemColors.Control;
+            dataGridViewCellStyle3.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle3.ForeColor = SystemColors.WindowText;
+            dataGridViewCellStyle3.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = DataGridViewTriState.True;
+            dgvProfile.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dgvProfile.RowHeadersWidth = 51;
             dgvProfile.Size = new Size(180, 150);
             dgvProfile.TabIndex = 34;
             // 
@@ -973,7 +998,7 @@
             numNY.Location = new Point(76, 263);
             numNY.Minimum = new decimal(new int[] { 5, 0, 0, 0 });
             numNY.Name = "numNY";
-            numNY.Size = new Size(53, 23);
+            numNY.Size = new Size(53, 27);
             numNY.TabIndex = 32;
             numNY.Value = new decimal(new int[] { 40, 0, 0, 0 });
             // 
@@ -982,16 +1007,16 @@
             numNX.Location = new Point(12, 263);
             numNX.Minimum = new decimal(new int[] { 5, 0, 0, 0 });
             numNX.Name = "numNX";
-            numNX.Size = new Size(57, 23);
+            numNX.Size = new Size(57, 27);
             numNX.TabIndex = 31;
             numNX.Value = new decimal(new int[] { 40, 0, 0, 0 });
             // 
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(12, 244);
+            label4.Location = new Point(12, 240);
             label4.Name = "label4";
-            label4.Size = new Size(68, 15);
+            label4.Size = new Size(87, 20);
             label4.TabIndex = 30;
             label4.Text = "Разбиения:";
             // 
@@ -999,9 +1024,9 @@
             // 
             numY1.DecimalPlaces = 2;
             numY1.Location = new Point(76, 212);
-            numY1.Minimum = new decimal(new int[] { 100, 0, 0, -2147483648 });
+            numY1.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numY1.Name = "numY1";
-            numY1.Size = new Size(54, 23);
+            numY1.Size = new Size(54, 27);
             numY1.TabIndex = 29;
             numY1.Value = new decimal(new int[] { 10, 0, 0, 0 });
             // 
@@ -1009,18 +1034,18 @@
             // 
             numY0.DecimalPlaces = 2;
             numY0.Location = new Point(12, 212);
-            numY0.Minimum = new decimal(new int[] { 100, 0, 0, -2147483648 });
+            numY0.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numY0.Name = "numY0";
-            numY0.Size = new Size(58, 23);
+            numY0.Size = new Size(58, 27);
             numY0.TabIndex = 28;
-            numY0.Value = new decimal(new int[] { 10, 0, 0, -2147483648 });
+            numY0.Value = new decimal(new int[] { 10, 0, 0, int.MinValue });
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(12, 194);
+            label3.Location = new Point(12, 190);
             label3.Name = "label3";
-            label3.Size = new Size(65, 15);
+            label3.Size = new Size(80, 20);
             label3.TabIndex = 27;
             label3.Text = "y ∈ [y₀, y₁]:";
             // 
@@ -1028,9 +1053,9 @@
             // 
             numX1.DecimalPlaces = 2;
             numX1.Location = new Point(75, 166);
-            numX1.Minimum = new decimal(new int[] { 100, 0, 0, -2147483648 });
+            numX1.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numX1.Name = "numX1";
-            numX1.Size = new Size(54, 23);
+            numX1.Size = new Size(54, 27);
             numX1.TabIndex = 26;
             numX1.Value = new decimal(new int[] { 10, 0, 0, 0 });
             // 
@@ -1038,27 +1063,27 @@
             // 
             numX0.DecimalPlaces = 2;
             numX0.Location = new Point(11, 166);
-            numX0.Minimum = new decimal(new int[] { 100, 0, 0, -2147483648 });
+            numX0.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numX0.Name = "numX0";
-            numX0.Size = new Size(58, 23);
+            numX0.Size = new Size(58, 27);
             numX0.TabIndex = 25;
-            numX0.Value = new decimal(new int[] { 10, 0, 0, -2147483648 });
+            numX0.Value = new decimal(new int[] { 10, 0, 0, int.MinValue });
             // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(11, 148);
+            label2.Location = new Point(11, 144);
             label2.Name = "label2";
-            label2.Size = new Size(62, 15);
+            label2.Size = new Size(80, 20);
             label2.TabIndex = 24;
             label2.Text = "x ∈ [x₀, x₁]:";
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(11, 83);
+            label1.Location = new Point(11, 79);
             label1.Name = "label1";
-            label1.Size = new Size(58, 15);
+            label1.Size = new Size(72, 20);
             label1.TabIndex = 23;
             label1.Text = "Функция:";
             // 
@@ -1068,7 +1093,7 @@
             cmbFunction.FormattingEnabled = true;
             cmbFunction.Location = new Point(11, 107);
             cmbFunction.Name = "cmbFunction";
-            cmbFunction.Size = new Size(118, 23);
+            cmbFunction.Size = new Size(118, 28);
             cmbFunction.TabIndex = 22;
             // 
             // btn_modelSave
@@ -1076,8 +1101,8 @@
             btn_modelSave.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btn_modelSave.BackColor = SystemColors.ControlLightLight;
             btn_modelSave.Enabled = false;
-            btn_modelSave.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            btn_modelSave.Location = new Point(196, 15);
+            btn_modelSave.Font = new Font("Segoe UI", 9.6F, FontStyle.Bold);
+            btn_modelSave.Location = new Point(196, 11);
             btn_modelSave.Margin = new Padding(3, 4, 3, 4);
             btn_modelSave.Name = "btn_modelSave";
             btn_modelSave.Size = new Size(189, 44);
@@ -1090,8 +1115,8 @@
             // 
             btn_modelLoad.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btn_modelLoad.BackColor = SystemColors.ControlLightLight;
-            btn_modelLoad.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            btn_modelLoad.Location = new Point(6, 15);
+            btn_modelLoad.Font = new Font("Segoe UI", 9.6F, FontStyle.Bold);
+            btn_modelLoad.Location = new Point(6, 11);
             btn_modelLoad.Margin = new Padding(3, 4, 3, 4);
             btn_modelLoad.Name = "btn_modelLoad";
             btn_modelLoad.Size = new Size(189, 44);
@@ -1104,11 +1129,11 @@
             // 
             btn_lab6.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btn_lab6.BackColor = SystemColors.ControlLightLight;
-            btn_lab6.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            btn_lab6.Location = new Point(814, 221);
+            btn_lab6.Font = new Font("Segoe UI", 9.6F, FontStyle.Bold);
+            btn_lab6.Location = new Point(577, 221);
             btn_lab6.Margin = new Padding(3, 4, 3, 4);
             btn_lab6.Name = "btn_lab6";
-            btn_lab6.Size = new Size(153, 44);
+            btn_lab6.Size = new Size(126, 44);
             btn_lab6.TabIndex = 17;
             btn_lab6.Text = "Lab6";
             btn_lab6.UseVisualStyleBackColor = false;
@@ -1118,21 +1143,46 @@
             // 
             btn_lab7.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btn_lab7.BackColor = SystemColors.ControlLightLight;
-            btn_lab7.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            btn_lab7.Location = new Point(973, 221);
+            btn_lab7.Font = new Font("Segoe UI", 9.6F, FontStyle.Bold);
+            btn_lab7.Location = new Point(721, 221);
             btn_lab7.Margin = new Padding(3, 4, 3, 4);
             btn_lab7.Name = "btn_lab7";
-            btn_lab7.Size = new Size(151, 44);
+            btn_lab7.Size = new Size(111, 44);
             btn_lab7.TabIndex = 18;
             btn_lab7.Text = "Lab7";
             btn_lab7.UseVisualStyleBackColor = false;
             btn_lab7.Click += btn_lab7_Click;
             // 
+            // gb_lab8
+            // 
+            gb_lab8.Location = new Point(577, 268);
+            gb_lab8.Name = "gb_lab8";
+            gb_lab8.Size = new Size(391, 476);
+            gb_lab8.TabIndex = 19;
+            gb_lab8.TabStop = false;
+            // 
+            // btn_lab8
+            // 
+            btn_lab8.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btn_lab8.BackColor = SystemColors.ControlLightLight;
+            btn_lab8.Font = new Font("Segoe UI", 9.6F, FontStyle.Bold);
+            btn_lab8.Location = new Point(857, 221);
+            btn_lab8.Margin = new Padding(3, 4, 3, 4);
+            btn_lab8.Name = "btn_lab8";
+            btn_lab8.Size = new Size(111, 44);
+            btn_lab8.TabIndex = 20;
+            btn_lab8.Text = "Lab8";
+            btn_lab8.UseVisualStyleBackColor = false;
+            btn_lab8.Click += btn_lab8_Click;
+            // 
             // Form1
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1184, 761);
+            ClientSize = new Size(984, 769);
+            Controls.Add(btn_lab8);
+            Controls.Add(gb_lab8);
+            Controls.Add(pb);
             Controls.Add(btn_lab7);
             Controls.Add(btn_lab6);
             Controls.Add(btn_Reset);
@@ -1146,7 +1196,6 @@
             Controls.Add(lbl_FOV);
             Controls.Add(tb_FOV);
             Controls.Add(btn_Projection);
-            Controls.Add(pb);
             Controls.Add(gb_lab7);
             Controls.Add(gb_lab6);
             Margin = new Padding(3, 4, 3, 4);
@@ -1181,8 +1230,8 @@
             gb_lab6.ResumeLayout(false);
             gb_lab7.ResumeLayout(false);
             gb_lab7.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvProfile).EndInit();
             ((System.ComponentModel.ISupportInitialize)numSegments).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvProfile).EndInit();
             ((System.ComponentModel.ISupportInitialize)numNY).EndInit();
             ((System.ComponentModel.ISupportInitialize)numNX).EndInit();
             ((System.ComponentModel.ISupportInitialize)numY1).EndInit();
@@ -1193,6 +1242,10 @@
             PerformLayout();
         }
 
+        private System.Windows.Forms.GroupBox gb_lab8;
+
         #endregion
+
+        private Button btn_lab8;
     }
 }
