@@ -1164,17 +1164,32 @@
             // 
             // gb_lab8
             // 
+
+            btn_renderMode = new Button();
+            btn_renderMode.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btn_renderMode.Location = new Point(6, 185);  
+            btn_renderMode.Name = "btn_renderMode";
+            btn_renderMode.Size = new Size(379, 54);
+            btn_renderMode.TabIndex = 26;
+            btn_renderMode.Text = "Render Mode: Wireframe";
+            btn_renderMode.UseVisualStyleBackColor = true;
+            btn_renderMode.Click += btn_renderMode_Click;
+
             gb_lab8.Controls.Add(btn_normalsDisplay);
             gb_lab8.Controls.Add(btn_cullBackfaces);
             gb_lab8.Controls.Add(lbl_camYaw);
             gb_lab8.Controls.Add(tb_camYaw);
             gb_lab8.Controls.Add(lbl_camPitch);
             gb_lab8.Controls.Add(tb_camPitch);
+            gb_lab8.Controls.Add(btn_renderMode);
             gb_lab8.Location = new Point(577, 268);
             gb_lab8.Name = "gb_lab8";
             gb_lab8.Size = new Size(391, 476);
             gb_lab8.TabIndex = 19;
             gb_lab8.TabStop = false;
+
+
+           
             // 
             // btn_normalsDisplay
             // 
@@ -1348,5 +1363,6 @@
         private TrackBar tb_camYaw;
         private Button btn_cullBackfaces;
         private Button btn_normalsDisplay;
+        private Button btn_renderMode;
     }
 }

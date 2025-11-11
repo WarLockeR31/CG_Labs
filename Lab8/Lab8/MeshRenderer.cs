@@ -5,6 +5,7 @@ namespace Renderer;
 
 public enum ProjectionType { Perspective, Axonometric }
 
+public enum RenderMode { Wireframe, ZBuffer }
 public sealed class MeshRenderer
 {
 	public	const double	StandardDistance = -200;
@@ -97,84 +98,114 @@ public sealed class MeshRenderer
     }
 	
 	public Vec3[] CurModelTransform() => Model.Vertices.Select(v => ModelTransform.TransformPoint(v)).ToArray();
-	
-	public void Render(Graphics g, Rectangle viewport)
-	{
-		if (Model is null || Model.Vertices.Count == 0) return;
 
+    public void Render(Graphics g, Rectangle viewport)
+    {
+        if (Model is null || Model.Vertices.Count == 0) return;
 
-		g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-		var viewWorld = ViewTransform;
-		var world = viewWorld * ModelTransform;
-		var transformed = Model.Vertices.Select(v => world.TransformPoint(v)).ToArray();
-		Mat4 proj;
+        var viewWorld = ViewTransform;
+        var world = viewWorld * ModelTransform;
+        var transformed = Model.Vertices.Select(v => world.TransformPoint(v)).ToArray();
+        Mat4 proj;
 
-		Vec2[] screen;
-		if (Projection == ProjectionType.Perspective)
-		{
-			const double deg = Math.PI / 180.0;
-			var aspect = (double)viewport.Width / Math.Max(1, viewport.Height);
-			proj   = Mat4.PerspectiveFovY(fovYdeg: FOV, aspect: aspect, zn: 0.1, zf: 100000); 
+        Vec2[] screen;
+        Vec3[] ndc = null;
 
-			var ndc = transformed.Select(v => proj.TransformPoint(v)).ToArray(); 
-			screen = ToViewport(ndc, viewport);
-		}
-		else
-		{
-			var aspect = (double)viewport.Width / Math.Max(1, viewport.Height);
-
-			double vHalf = 80.0;            // полувысота видимой области
-			double hHalf = vHalf * aspect;  // ширина под аспект
-
-			proj = Mat4.Orthographic(-hHalf, hHalf, -vHalf, vHalf, zn: -1000, zf: 1000);
-			var ndc = transformed.Select(v => proj.TransformPoint(v)).ToArray();
-			screen = ToViewport(ndc, viewport);
-		}
-
-		if (ShowGrid)
-		{
-			DrawGridXZ(g, viewport, viewWorld, proj);
-		}
-
-        if (Wireframe)
+        if (Projection == ProjectionType.Perspective)
         {
-            foreach (var face in Model.Faces)
-            {
-                if (CullBackFaces && !IsFaceFrontFacing(face, transformed, Projection))
-                    continue;
+            const double deg = Math.PI / 180.0;
+            var aspect = (double)viewport.Width / Math.Max(1, viewport.Height);
+            proj = Mat4.PerspectiveFovY(fovYdeg: FOV, aspect: aspect, zn: 0.1, zf: 100000);
+            ndc = transformed.Select(v => proj.TransformPoint(v)).ToArray();
+            screen = ToViewport(ndc, viewport);
+        }
+        else
+        {
+            var aspect = (double)viewport.Width / Math.Max(1, viewport.Height);
+            double vHalf = 80.0;
+            double hHalf = vHalf * aspect;
+            proj = Mat4.Orthographic(-hHalf, hHalf, -vHalf, vHalf, zn: -1000, zf: 1000);
+            ndc = transformed.Select(v => proj.TransformPoint(v)).ToArray();
+            screen = ToViewport(ndc, viewport);
+        }
 
-                for (int i = 0; i < face.Indices.Length; i++)
-                {
-                    int a = face.Indices[i];
-                    int b = face.Indices[(i + 1) % face.Indices.Length];
-                    var pa = screen[a];
-                    var pb = screen[b];
-                    g.DrawLine(WirePen, (float)pa.X, (float)pa.Y, (float)pb.X, (float)pb.Y);
-                }
+        if (ShowGrid)
+        {
+            DrawGridXZ(g, viewport, viewWorld, proj);
+        }
+
+        // Инициализация Z-буфера если нужно
+        if (RenderMode == RenderMode.ZBuffer && (zBuffer == null ||
+            zBuffer.GetLength(0) != viewport.Width || zBuffer.GetLength(1) != viewport.Height))
+        {
+            InitializeZBuffer(viewport.Width, viewport.Height);
+        }
+
+        if (RenderMode == RenderMode.ZBuffer)
+        {
+            ClearZBuffer();
+            RenderZBuffer(g, viewport, transformed, screen, ndc, proj);
+        }
+        else
+        {
+            RenderWireframe(g, viewport, transformed, screen, ndc, proj);
+        }
+    }
+
+    private void RenderZBuffer(Graphics g, Rectangle viewport, Vec3[] transformed,
+                              Vec2[] screen, Vec3[] ndc, Mat4 proj)
+    {
+        // Рендерим все грани с Z-буфером
+        foreach (var face in Model.Faces)
+        {
+            if (CullBackFaces && !IsFaceFrontFacing(face, transformed, Projection))
+                continue;
+
+            var idx = face.Indices;
+
+            // Разбиваем полигон на треугольники (фанаут)
+            for (int i = 1; i + 1 < idx.Length; i++)
+            {
+                int i0 = idx[0];
+                int i1 = idx[i];
+                int i2 = idx[i + 1];
+
+                var p0 = screen[i0];
+                var p1 = screen[i1];
+                var p2 = screen[i2];
+
+                // Получаем глубину 
+                double z0 = ndc[i0].Z;
+                double z1 = ndc[i1].Z;
+                double z2 = ndc[i2].Z;
+
+                RasterizeTriangle(g, p0, p1, p2, z0, z1, z2, viewport);
+            }
+        }
+    }
+
+    private void RenderWireframe(Graphics g, Rectangle viewport, Vec3[] transformed,
+                                Vec2[] screen, Vec3[] ndc, Mat4 proj)
+    {
+        // Старый код рендеринга wireframe
+        foreach (var face in Model.Faces)
+        {
+            if (CullBackFaces && !IsFaceFrontFacing(face, transformed, Projection))
+                continue;
+
+            for (int i = 0; i < face.Indices.Length; i++)
+            {
+                int a = face.Indices[i];
+                int b = face.Indices[(i + 1) % face.Indices.Length];
+                var pa = screen[a];
+                var pb = screen[b];
+                g.DrawLine(WirePen, (float)pa.X, (float)pa.Y, (float)pb.X, (float)pb.Y);
             }
         }
 
-        if (ShowFaceNormals)
-        {
-            foreach (var face in Model.Faces)
-            {
-                if (!TryComputeFaceCenterAndNormal(face, transformed, out var c, out var n))
-                    continue;
-                if (CullBackFaces && !IsFaceFrontFacing(face, transformed, Projection))
-                    continue;
-
-                var tip = c + n * NormalLength;          
-                var cNdc = proj.TransformPoint(c);
-                var tipNdc = proj.TransformPoint(tip);
-
-                var cScr = ToViewport(cNdc, viewport);
-                var tipScr = ToViewport(tipNdc, viewport);
-
-                g.DrawLine(NormalPen, (float)cScr.X, (float)cScr.Y, (float)tipScr.X, (float)tipScr.Y);
-            }
-        }
-
+        // Рендеринг вершин и нормалей 
         bool[] vertexVisible;
         if (!CullBackFaces)
         {
@@ -192,20 +223,38 @@ public sealed class MeshRenderer
 
         for (int i = 0; i < screen.Length; i++)
         {
-            if (!vertexVisible[i]) 
-				continue;
+            if (!vertexVisible[i])
+                continue;
 
             var p = screen[i];
             g.FillEllipse(VertexBrush,
                 (float)p.X - VertexRadius, (float)p.Y - VertexRadius,
                 VertexRadius * 2, VertexRadius * 2);
         }
+
+        if (ShowFaceNormals)
+        {
+            foreach (var face in Model.Faces)
+            {
+                if (!TryComputeFaceCenterAndNormal(face, transformed, out var c, out var n))
+                    continue;
+                if (CullBackFaces && !IsFaceFrontFacing(face, transformed, Projection))
+                    continue;
+
+                var tip = c + n * NormalLength;
+                var cNdc = proj.TransformPoint(c);
+                var tipNdc = proj.TransformPoint(tip);
+
+                var cScr = ToViewport(cNdc, viewport);
+                var tipScr = ToViewport(tipNdc, viewport);
+
+                g.DrawLine(NormalPen, (float)cScr.X, (float)cScr.Y, (float)tipScr.X, (float)tipScr.Y);
+            }
+        }
     }
 	
 	private static Vec2[] ToViewport(IReadOnlyList<Vec3> ndc, Rectangle vp)
 	{
-		// ndc: после проекции и деления на w (TransformPoint уже делит на w)
-		// x_ndc, y_ndc ∈ [-1,1]; центр кадра — principal point
 		double cx = vp.Left + vp.Width * 0.5;
 		double cy = vp.Top  + vp.Height * 0.5;
 		double sx = vp.Width * 0.5;
@@ -216,7 +265,7 @@ public sealed class MeshRenderer
 		{
 			var p = ndc[i];
 			double x = cx + p.X * sx;
-			double y = cy - p.Y * sy; // экранный Y вниз
+			double y = cy - p.Y * sy; 
 			outPts[i] = new Vec2(x, y);
 		}
 		return outPts;
@@ -367,4 +416,96 @@ public sealed class MeshRenderer
 
 
     #endregion
+
+    public RenderMode RenderMode { get; set; } = RenderMode.Wireframe;
+
+    private double[,] zBuffer;
+    private bool[,] zBufferInitialized;
+
+    // Инициализация Z-буфера
+    private void InitializeZBuffer(int width, int height)
+    {
+        zBuffer = new double[width, height];
+        zBufferInitialized = new bool[width, height];
+        ClearZBuffer();
+    }
+
+    private void ClearZBuffer()
+    {
+        if (zBuffer != null)
+        {
+            for (int y = 0; y < zBuffer.GetLength(1); y++)
+            {
+                for (int x = 0; x < zBuffer.GetLength(0); x++)
+                {
+                    zBuffer[x, y] = double.MaxValue;
+                    zBufferInitialized[x, y] = false;
+                }
+            }
+        }
+    }
+
+    // Основная функция растеризации треугольника
+    private void RasterizeTriangle(Graphics g, Vec2 p0, Vec2 p1, Vec2 p2,
+                                  double z0, double z1, double z2,
+                                  Rectangle viewport)
+    {
+        // Найдем bounding box треугольника
+        double minX = Math.Min(p0.X, Math.Min(p1.X, p2.X));
+        double maxX = Math.Max(p0.X, Math.Max(p1.X, p2.X));
+        double minY = Math.Min(p0.Y, Math.Min(p1.Y, p2.Y));
+        double maxY = Math.Max(p0.Y, Math.Max(p1.Y, p2.Y));
+
+        // Ограничим bounding box размерами viewport'а
+        minX = Math.Max(minX, viewport.Left);
+        maxX = Math.Min(maxX, viewport.Right - 1);
+        minY = Math.Max(minY, viewport.Top);
+        maxY = Math.Min(maxY, viewport.Bottom - 1);
+
+        // Проходим по всем пикселям в bounding box
+        for (double y = minY; y <= maxY; y++)
+        {
+            for (double x = minX; x <= maxX; x++)
+            {
+                Vec2 p = new Vec2(x, y);
+
+                // Вычисляем барицентрические координаты
+                double area = EdgeFunction(p0, p1, p2);
+                double w0 = EdgeFunction(p1, p2, p) / area;
+                double w1 = EdgeFunction(p2, p0, p) / area;
+                double w2 = EdgeFunction(p0, p1, p) / area;
+
+                // Если точка внутри треугольника
+                if (w0 >= 0 && w1 >= 0 && w2 >= 0)
+                {
+                    // Интерполируем глубину
+                    double z = w0 * z0 + w1 * z1 + w2 * z2;
+
+                    int ix = (int)Math.Round(x);
+                    int iy = (int)Math.Round(y);
+
+                    // Проверяем границы Z-буфера
+                    if (ix >= 0 && ix < zBuffer.GetLength(0) &&
+                        iy >= 0 && iy < zBuffer.GetLength(1))
+                    {
+                        // Z-тест (чем меньше Z, тем ближе объект)
+                        if (z < zBuffer[ix, iy] || !zBufferInitialized[ix, iy])
+                        {
+                            zBuffer[ix, iy] = z;
+                            zBufferInitialized[ix, iy] = true;
+
+                            // Рисуем пиксель
+                            g.FillRectangle(Brushes.Black, ix, iy, 1, 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Вспомогательная функция для вычисления ориентации
+    private static double EdgeFunction(Vec2 a, Vec2 b, Vec2 c)
+    {
+        return (b.X - a.X) * (c.Y - a.Y) - (b.Y - a.Y) * (c.X - a.X);
+    }
 }

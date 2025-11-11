@@ -578,5 +578,15 @@ namespace Lab8
             _renderer.ShowFaceNormals = !_renderer.ShowFaceNormals;
             btn_normalsDisplay.Text = "Face Normals: " + (_renderer.ShowFaceNormals ? "On" : "Off");
         }
+
+        private void btn_renderMode_Click(object sender, EventArgs e)
+        {
+            _renderer.RenderMode = _renderer.RenderMode == Renderer.RenderMode.Wireframe
+                ? Renderer.RenderMode.ZBuffer
+                : Renderer.RenderMode.Wireframe;
+
+            btn_renderMode.Text = "Render Mode: " + _renderer.RenderMode.ToString();
+            pb.Invalidate();
+        }
     }
 }
