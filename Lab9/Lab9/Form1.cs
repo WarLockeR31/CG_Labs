@@ -77,6 +77,8 @@ namespace Lab9
             lbl_FOV.Text = "FOV: " + tb_FOV.Value;
         }
 
+        #region Keyboard
+        //---------------------------------------------------- KEYBOARD ----------------------------------------------------
         private static bool isRotating = false;
         private void Form1_KeyDown(object? sender, KeyEventArgs e)
         {
@@ -118,7 +120,7 @@ namespace Lab9
         {
             _renderer.ApplyModelTransformWorld(Mat4.RotationY(-0.05));
         }
-
+        #endregion
 
         private void tb_Distance_Scroll(object sender, EventArgs e)
         {
@@ -216,7 +218,6 @@ namespace Lab9
             var sy = (double)numSY.Value;
             var sz = (double)numSZ.Value;
 
-            // ��������� ����� �������������
             var center = CalculateMeshCenter();
 
             var scaling = Mat4.ScaleAtOrigin(sx, sy, sz, center);
@@ -581,11 +582,23 @@ namespace Lab9
 
         private void btn_renderMode_Click(object sender, EventArgs e)
         {
-            _renderer.RenderMode = _renderer.RenderMode == Renderer.RenderMode.Wireframe
-                ? Renderer.RenderMode.ZBuffer
-                : Renderer.RenderMode.Wireframe;
+            switch (_renderer.RenderMode)
+            {
+                case Renderer.RenderMode.Wireframe:
+                    _renderer.RenderMode = Renderer.RenderMode.Gouraud;
+                    break;
 
-            btn_renderMode.Text = "Render Mode: " + _renderer.RenderMode.ToString();
+                case Renderer.RenderMode.Gouraud:
+                    _renderer.RenderMode = Renderer.RenderMode.ZBuffer;
+                    break;
+
+                case Renderer.RenderMode.ZBuffer:
+                default:
+                    _renderer.RenderMode = Renderer.RenderMode.Wireframe;
+                    break;
+            }
+
+            btn_renderMode.Text = "Render Mode: " + _renderer.RenderMode;
             pb.Invalidate();
         }
     }

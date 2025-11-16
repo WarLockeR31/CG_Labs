@@ -5,7 +5,7 @@ namespace Renderer;
 
 public enum ProjectionType { Perspective, Axonometric }
 
-public enum RenderMode { Wireframe, ZBuffer }
+public enum RenderMode { Wireframe, ZBuffer, Gouraud }
 public sealed class MeshRenderer
 {
 	public	const double	StandardDistance = -200;
@@ -81,6 +81,12 @@ public sealed class MeshRenderer
     public Pen NormalPen		{ get; set; } = Pens.MediumVioletRed;
     public double NormalLength	{ get; set; } = 20.0;
 
+    // Lighting
+    public Vec3 LightPosition   { get; set; } = new Vec3(200, 200, 200);
+    public Color ObjectColor    { get; set; } = Color.CornflowerBlue;
+    public double Ambient       { get; set; } = 0.15;
+
+
     public MeshRenderer()
 	{
         UpdateViewTransform();
@@ -136,23 +142,170 @@ public sealed class MeshRenderer
             DrawGridXZ(g, viewport, viewWorld, proj);
         }
 
-        // Инициализация Z-буфера если нужно
-        if (RenderMode == RenderMode.ZBuffer && (zBuffer == null ||
-            zBuffer.GetLength(0) != viewport.Width || zBuffer.GetLength(1) != viewport.Height))
+        Color[]? vertexColors = null;
+        if (RenderMode == RenderMode.Gouraud)
         {
-            InitializeZBuffer(viewport.Width, viewport.Height);
+            // world = ViewTransform * ModelTransform — это матрица модель → видовые координаты
+            vertexColors = ComputeLambertVertexColors(world, transformed);
         }
 
+        // Инициализация Z-буфера если нужно
         if (RenderMode == RenderMode.ZBuffer)
         {
+            if (zBuffer == null || zBuffer.GetLength(0) != viewport.Width || zBuffer.GetLength(1) != viewport.Height)
+            {
+                InitializeZBuffer(viewport.Width, viewport.Height);
+            }
             ClearZBuffer();
             RenderZBuffer(g, viewport, transformed, screen, ndc, proj);
         }
+        else if (RenderMode == RenderMode.Gouraud)
+        {
+            // Гуро-шейдинг по Ламберту без Z-буфера
+            RenderGouraud(g, viewport, transformed, screen, ndc, proj, vertexColors!);
+        }
         else
         {
+            // Wireframe
             RenderWireframe(g, viewport, transformed, screen, ndc, proj);
         }
     }
+
+    #region Gouraud
+    //---------------------------------------------------- GOURAUD ----------------------------------------------------
+    private static Color ShadeColor(Color baseColor, double intensity)
+    {
+        intensity = Math.Clamp(intensity, 0.0, 1.0);
+        int r = (int)(baseColor.R * intensity);
+        int g = (int)(baseColor.G * intensity);
+        int b = (int)(baseColor.B * intensity);
+        return Color.FromArgb(r, g, b);
+    }
+
+    private Color[] ComputeLambertVertexColors(in Mat4 modelToView, Vec3[] vertsView)
+    {
+        if (Model == null)
+            return Array.Empty<Color>();
+
+        // Генерим нормали, если их ещё нет
+        if (Model.VertexNormals == null || Model.VertexNormals.Count != Model.Vertices.Count)
+            Model.GenerateVertexNormals();
+
+        // Источник света переводим во view-пространство
+        var lightView = ViewTransform.TransformPoint(LightPosition);
+
+        var colors = new Color[Model.Vertices.Count];
+
+        for (int i = 0; i < Model.Vertices.Count; i++)
+        {
+            var nModel = Model.VertexNormals![i];
+            var nView = modelToView.TransformDirection(nModel).Normalize();
+
+            var posView = vertsView[i];
+            var L = (lightView - posView).Normalize();
+
+            double ndotl = Math.Max(0.0, Vec3Math.Dot(nView, L));
+
+            // I = Ia + Id = Ambient + (1 - Ambient) * max(0, N·L)
+            double intensity = Ambient + (1.0 - Ambient) * ndotl;
+
+            colors[i] = ShadeColor(ObjectColor, intensity);
+        }
+
+        return colors;
+    }
+
+    private void RenderGouraud(Graphics g, Rectangle viewport, Vec3[] transformed,
+                           Vec2[] screen, Vec3[] ndc, Mat4 proj, Color[] vertexColors)
+    {
+        if (Model == null) return;
+
+        foreach (var face in Model.Faces)
+        {
+            if (CullBackFaces && !IsFaceFrontFacing(face, transformed, Projection))
+                continue;
+
+            var idx = face.Indices;
+            if (idx.Length < 3) continue;
+
+            // Фан-триангуляция n-угольника
+            for (int i = 1; i + 1 < idx.Length; i++)
+            {
+                int i0 = idx[0];
+                int i1 = idx[i];
+                int i2 = idx[i + 1];
+
+                var p0 = screen[i0];
+                var p1 = screen[i1];
+                var p2 = screen[i2];
+
+                var c0 = vertexColors[i0];
+                var c1 = vertexColors[i1];
+                var c2 = vertexColors[i2];
+
+                RasterizeTriangleGouraud(g, p0, p1, p2, c0, c1, c2, viewport);
+            }
+        }
+    }
+
+    private void RasterizeTriangleGouraud(Graphics g,
+                                      Vec2 p0, Vec2 p1, Vec2 p2,
+                                      Color c0, Color c1, Color c2,
+                                      Rectangle viewport)
+    {
+        // обычный bounding box в вещественных
+        double minX = Math.Min(p0.X, Math.Min(p1.X, p2.X));
+        double maxX = Math.Max(p0.X, Math.Max(p1.X, p2.X));
+        double minY = Math.Min(p0.Y, Math.Min(p1.Y, p2.Y));
+        double maxY = Math.Max(p0.Y, Math.Max(p1.Y, p2.Y));
+
+        // приводим к пиксельным целым координатам
+        int x0 = (int)Math.Floor(Math.Max(minX, viewport.Left));
+        int x1 = (int)Math.Ceiling(Math.Min(maxX, viewport.Right - 1));
+        int y0 = (int)Math.Floor(Math.Max(minY, viewport.Top));
+        int y1 = (int)Math.Ceiling(Math.Min(maxY, viewport.Bottom - 1));
+
+        double area = EdgeFunction(p0, p1, p2);
+        if (Math.Abs(area) < 1e-12)
+            return; // вырожденный треугольник
+
+        const double eps = -1e-6; // небольшой допуск внутрь
+
+        using var brush = new SolidBrush(Color.Black);
+
+        for (int y = y0; y <= y1; y++)
+        {
+            for (int x = x0; x <= x1; x++)
+            {
+                // выборка в центре пикселя
+                var p = new Vec2(x + 0.5, y + 0.5);
+
+                double w0 = EdgeFunction(p1, p2, p) / area;
+                double w1 = EdgeFunction(p2, p0, p) / area;
+                double w2 = EdgeFunction(p0, p1, p) / area;
+
+                if (w0 >= eps && w1 >= eps && w2 >= eps)
+                {
+                    // Интерполяция цвета по вершинам (Гуро)
+                    double r = w0 * c0.R + w1 * c1.R + w2 * c2.R;
+                    double gCol = w0 * c0.G + w1 * c1.G + w2 * c2.G;
+                    double b = w0 * c0.B + w1 * c1.B + w2 * c2.B;
+
+                    int ir = (int)Math.Clamp(r, 0.0, 255.0);
+                    int ig = (int)Math.Clamp(gCol, 0.0, 255.0);
+                    int ib = (int)Math.Clamp(b, 0.0, 255.0);
+
+                    brush.Color = Color.FromArgb(ir, ig, ib);
+
+                    g.FillRectangle(brush, x, y, 1, 1);
+                }
+            }
+        }
+    }
+
+
+
+    #endregion
 
     private void RenderZBuffer(Graphics g, Rectangle viewport, Vec3[] transformed,
                               Vec2[] screen, Vec3[] ndc, Mat4 proj)

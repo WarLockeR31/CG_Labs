@@ -1250,7 +1250,7 @@
             btn_lab8.Name = "btn_lab8";
             btn_lab8.Size = new Size(97, 33);
             btn_lab8.TabIndex = 20;
-            btn_lab8.Text = "Lab8";
+            btn_lab8.Text = "Lab8, Lab9";
             btn_lab8.UseVisualStyleBackColor = false;
             btn_lab8.Click += btn_lab8_Click;
             // 

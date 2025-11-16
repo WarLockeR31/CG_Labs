@@ -90,9 +90,18 @@ public readonly struct Mat4
 		return new Vec3(x, y, z);
 	}
 
-	#region Basic transformations
-	
-	public static Mat4 Translation(double dx, double dy, double dz)
+    public Vec3 TransformDirection(in Vec3 v)
+    {
+        double x = v.X * M11 + v.Y * M12 + v.Z * M13;
+        double y = v.X * M21 + v.Y * M22 + v.Z * M23;
+        double z = v.X * M31 + v.Y * M32 + v.Z * M33;
+        return new Vec3(x, y, z);
+    }
+
+
+    #region Basic transformations
+
+    public static Mat4 Translation(double dx, double dy, double dz)
 		=> new(
 			1, 0, 0,dx, 
 			0, 1, 0,dy, 
