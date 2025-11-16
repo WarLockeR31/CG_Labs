@@ -16,6 +16,7 @@ namespace Lab9
         private readonly Timer _timer = new Timer { Interval = 33 };
         private string? _currentPath;
 
+
         public Form1()
         {
             InitializeComponent();
@@ -45,6 +46,13 @@ namespace Lab9
 
             tb_camPitch.Value = (int)_renderer.PitchDegrees;
             lbl_camPitch.Text = "Pitch: " + (int)_renderer.PitchDegrees;
+
+
+            numLightX.Value = (decimal)_renderer.LightPosition.X;
+            numLightY.Value = (decimal)_renderer.LightPosition.Y;
+            numLightZ.Value = (decimal)_renderer.LightPosition.Z;
+
+            panelLightColor.BackColor = _renderer.ObjectColor;
         }
 
         private void pb_Paint(object sender, PaintEventArgs e)
@@ -601,5 +609,47 @@ namespace Lab9
             btn_renderMode.Text = "Render Mode: " + _renderer.RenderMode;
             pb.Invalidate();
         }
+
+        #region Lighting
+        //---------------------------------------------------- LIGHTING ----------------------------------------------------
+        private void UpdateLightPosition()
+        {
+            _renderer.LightPosition = new Vec3(
+                (double)numLightX.Value,
+                (double)numLightY.Value,
+                (double)numLightZ.Value
+            );
+        }
+
+        private void numLightX_ValueChanged(object sender, EventArgs e)
+        {
+            UpdateLightPosition();
+        }
+
+        private void numLightY_ValueChanged(object sender, EventArgs e)
+        {
+            UpdateLightPosition();
+        }
+
+        private void numLightZ_ValueChanged(object sender, EventArgs e)
+        {
+            UpdateLightPosition();
+        }
+
+        private void btnLightColor_Click(object sender, EventArgs e)
+        {
+            using (var dlg = new ColorDialog())
+            {
+                dlg.Color = _renderer.ObjectColor;
+
+                if (dlg.ShowDialog(this) == DialogResult.OK)
+                {
+                    _renderer.ObjectColor = dlg.Color;
+                    panelLightColor.BackColor = dlg.Color;
+                }
+            }
+        }
+
+        #endregion
     }
 }

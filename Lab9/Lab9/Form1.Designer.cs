@@ -191,6 +191,15 @@
             btn_lab6 = new Button();
             btn_lab7 = new Button();
             gb_lab8 = new GroupBox();
+            gp_Lighting = new GroupBox();
+            panelLightColor = new Panel();
+            lbl_LightZ = new Label();
+            lbl_LightY = new Label();
+            lbl_LightX = new Label();
+            numLightZ = new NumericUpDown();
+            numLightY = new NumericUpDown();
+            btnLightColor = new Button();
+            numLightX = new NumericUpDown();
             btn_normalsDisplay = new Button();
             btn_cullBackfaces = new Button();
             lbl_camYaw = new Label();
@@ -233,6 +242,10 @@
             ((System.ComponentModel.ISupportInitialize)numX1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numX0).BeginInit();
             gb_lab8.SuspendLayout();
+            gp_Lighting.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numLightZ).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numLightY).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numLightX).BeginInit();
             ((System.ComponentModel.ISupportInitialize)tb_camYaw).BeginInit();
             ((System.ComponentModel.ISupportInitialize)tb_camPitch).BeginInit();
             SuspendLayout();
@@ -1138,6 +1151,7 @@
             // 
             // gb_lab8
             // 
+            gb_lab8.Controls.Add(gp_Lighting);
             gb_lab8.Controls.Add(btn_normalsDisplay);
             gb_lab8.Controls.Add(btn_cullBackfaces);
             gb_lab8.Controls.Add(lbl_camYaw);
@@ -1153,13 +1167,106 @@
             gb_lab8.TabIndex = 19;
             gb_lab8.TabStop = false;
             // 
+            // gp_Lighting
+            // 
+            gp_Lighting.Controls.Add(panelLightColor);
+            gp_Lighting.Controls.Add(lbl_LightZ);
+            gp_Lighting.Controls.Add(lbl_LightY);
+            gp_Lighting.Controls.Add(lbl_LightX);
+            gp_Lighting.Controls.Add(numLightZ);
+            gp_Lighting.Controls.Add(numLightY);
+            gp_Lighting.Controls.Add(btnLightColor);
+            gp_Lighting.Controls.Add(numLightX);
+            gp_Lighting.Location = new Point(136, 184);
+            gp_Lighting.Name = "gp_Lighting";
+            gp_Lighting.Size = new Size(200, 100);
+            gp_Lighting.TabIndex = 29;
+            gp_Lighting.TabStop = false;
+            gp_Lighting.Text = "Lighting";
+            // 
+            // panelLightColor
+            // 
+            panelLightColor.Location = new Point(115, 71);
+            panelLightColor.Name = "panelLightColor";
+            panelLightColor.Size = new Size(79, 23);
+            panelLightColor.TabIndex = 33;
+            // 
+            // lbl_LightZ
+            // 
+            lbl_LightZ.AutoSize = true;
+            lbl_LightZ.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lbl_LightZ.Location = new Point(15, 73);
+            lbl_LightZ.Name = "lbl_LightZ";
+            lbl_LightZ.Size = new Size(17, 15);
+            lbl_LightZ.TabIndex = 32;
+            lbl_LightZ.Text = "Z:";
+            // 
+            // lbl_LightY
+            // 
+            lbl_LightY.AutoSize = true;
+            lbl_LightY.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lbl_LightY.Location = new Point(15, 48);
+            lbl_LightY.Name = "lbl_LightY";
+            lbl_LightY.Size = new Size(17, 15);
+            lbl_LightY.TabIndex = 31;
+            lbl_LightY.Text = "Y:";
+            // 
+            // lbl_LightX
+            // 
+            lbl_LightX.AutoSize = true;
+            lbl_LightX.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lbl_LightX.Location = new Point(15, 21);
+            lbl_LightX.Name = "lbl_LightX";
+            lbl_LightX.Size = new Size(18, 15);
+            lbl_LightX.TabIndex = 30;
+            lbl_LightX.Text = "X:";
+            // 
+            // numLightZ
+            // 
+            numLightZ.Location = new Point(41, 71);
+            numLightZ.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
+            numLightZ.Name = "numLightZ";
+            numLightZ.Size = new Size(71, 23);
+            numLightZ.TabIndex = 30;
+            numLightZ.ValueChanged += numLightZ_ValueChanged;
+            // 
+            // numLightY
+            // 
+            numLightY.Location = new Point(41, 46);
+            numLightY.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
+            numLightY.Name = "numLightY";
+            numLightY.Size = new Size(71, 23);
+            numLightY.TabIndex = 29;
+            numLightY.ValueChanged += numLightY_ValueChanged;
+            // 
+            // btnLightColor
+            // 
+            btnLightColor.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btnLightColor.Location = new Point(115, 18);
+            btnLightColor.Margin = new Padding(3, 2, 3, 2);
+            btnLightColor.Name = "btnLightColor";
+            btnLightColor.Size = new Size(79, 52);
+            btnLightColor.TabIndex = 27;
+            btnLightColor.Text = "Select color";
+            btnLightColor.UseVisualStyleBackColor = true;
+            btnLightColor.Click += btnLightColor_Click;
+            // 
+            // numLightX
+            // 
+            numLightX.Location = new Point(41, 19);
+            numLightX.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
+            numLightX.Name = "numLightX";
+            numLightX.Size = new Size(71, 23);
+            numLightX.TabIndex = 28;
+            numLightX.ValueChanged += numLightX_ValueChanged;
+            // 
             // btn_normalsDisplay
             // 
             btn_normalsDisplay.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             btn_normalsDisplay.Location = new Point(175, 94);
             btn_normalsDisplay.Margin = new Padding(3, 2, 3, 2);
             btn_normalsDisplay.Name = "btn_normalsDisplay";
-            btn_normalsDisplay.Size = new Size(162, 40);
+            btn_normalsDisplay.Size = new Size(167, 40);
             btn_normalsDisplay.TabIndex = 25;
             btn_normalsDisplay.Text = "Face Normals: Off";
             btn_normalsDisplay.UseVisualStyleBackColor = true;
@@ -1232,10 +1339,10 @@
             // btn_renderMode
             // 
             btn_renderMode.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            btn_renderMode.Location = new Point(5, 139);
+            btn_renderMode.Location = new Point(0, 139);
             btn_renderMode.Margin = new Padding(3, 2, 3, 2);
             btn_renderMode.Name = "btn_renderMode";
-            btn_renderMode.Size = new Size(332, 40);
+            btn_renderMode.Size = new Size(342, 40);
             btn_renderMode.TabIndex = 26;
             btn_renderMode.Text = "Render Mode: Wireframe";
             btn_renderMode.UseVisualStyleBackColor = true;
@@ -1318,6 +1425,11 @@
             ((System.ComponentModel.ISupportInitialize)numX0).EndInit();
             gb_lab8.ResumeLayout(false);
             gb_lab8.PerformLayout();
+            gp_Lighting.ResumeLayout(false);
+            gp_Lighting.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numLightZ).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numLightY).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numLightX).EndInit();
             ((System.ComponentModel.ISupportInitialize)tb_camYaw).EndInit();
             ((System.ComponentModel.ISupportInitialize)tb_camPitch).EndInit();
             ResumeLayout(false);
@@ -1336,5 +1448,14 @@
         private Button btn_cullBackfaces;
         private Button btn_normalsDisplay;
         private Button btn_renderMode;
+        private Button btnLightColor;
+        private NumericUpDown numLightX;
+        private GroupBox gp_Lighting;
+        private NumericUpDown numLightZ;
+        private NumericUpDown numLightY;
+        private Label lbl_LightX;
+        private Label lbl_LightY;
+        private Label lbl_LightZ;
+        private Panel panelLightColor;
     }
 }
