@@ -197,6 +197,7 @@
             tb_camYaw = new TrackBar();
             lbl_camPitch = new Label();
             tb_camPitch = new TrackBar();
+            btn_renderMode = new Button();
             btn_lab8 = new Button();
             ((System.ComponentModel.ISupportInitialize)pb).BeginInit();
             ((System.ComponentModel.ISupportInitialize)tb_FOV).BeginInit();
@@ -980,6 +981,9 @@
             dgvProfile.DefaultCellStyle = dataGridViewCellStyle2;
             dgvProfile.Location = new Point(200, 70);
             dgvProfile.Name = "dgvProfile";
+            dgvProfile.Columns.Add("X", "X");
+            dgvProfile.Columns.Add("Y", "Y");
+            dgvProfile.Columns.Add("Z", "Z");
             dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle3.BackColor = SystemColors.Control;
             dataGridViewCellStyle3.Font = new Font("Segoe UI", 9F);
@@ -1164,17 +1168,6 @@
             // 
             // gb_lab8
             // 
-
-            btn_renderMode = new Button();
-            btn_renderMode.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            btn_renderMode.Location = new Point(6, 185);  
-            btn_renderMode.Name = "btn_renderMode";
-            btn_renderMode.Size = new Size(379, 54);
-            btn_renderMode.TabIndex = 26;
-            btn_renderMode.Text = "Render Mode: Wireframe";
-            btn_renderMode.UseVisualStyleBackColor = true;
-            btn_renderMode.Click += btn_renderMode_Click;
-
             gb_lab8.Controls.Add(btn_normalsDisplay);
             gb_lab8.Controls.Add(btn_cullBackfaces);
             gb_lab8.Controls.Add(lbl_camYaw);
@@ -1187,9 +1180,6 @@
             gb_lab8.Size = new Size(391, 476);
             gb_lab8.TabIndex = 19;
             gb_lab8.TabStop = false;
-
-
-           
             // 
             // btn_normalsDisplay
             // 
@@ -1267,6 +1257,17 @@
             tb_camPitch.Value = 70;
             tb_camPitch.Scroll += tb_camPitch_Scroll;
             // 
+            // btn_renderMode
+            // 
+            btn_renderMode.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btn_renderMode.Location = new Point(6, 185);
+            btn_renderMode.Name = "btn_renderMode";
+            btn_renderMode.Size = new Size(379, 54);
+            btn_renderMode.TabIndex = 26;
+            btn_renderMode.Text = "Render Mode: Wireframe";
+            btn_renderMode.UseVisualStyleBackColor = true;
+            btn_renderMode.Click += btn_renderMode_Click;
+            // 
             // btn_lab8
             // 
             btn_lab8.Anchor = AnchorStyles.Top | AnchorStyles.Right;
@@ -1287,7 +1288,6 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(984, 769);
             Controls.Add(btn_lab8);
-            Controls.Add(gb_lab8);
             Controls.Add(pb);
             Controls.Add(btn_lab7);
             Controls.Add(btn_lab6);
@@ -1304,6 +1304,7 @@
             Controls.Add(btn_Projection);
             Controls.Add(gb_lab7);
             Controls.Add(gb_lab6);
+            Controls.Add(gb_lab8);
             Margin = new Padding(3, 4, 3, 4);
             MinimumSize = new Size(1000, 800);
             Name = "Form1";
