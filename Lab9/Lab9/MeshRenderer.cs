@@ -5,7 +5,7 @@ namespace Renderer;
 
 public enum ProjectionType { Perspective, Axonometric }
 
-public enum RenderMode { Wireframe, ZBuffer, Gouraud }
+public enum RenderMode { Wireframe, ZBuffer, Gouraud, Phong }
 public sealed class MeshRenderer
 {
 	public	const double	StandardDistance = -200;
@@ -85,7 +85,8 @@ public sealed class MeshRenderer
     public Vec3 LightPosition   { get; set; } = new Vec3(200, 200, 200);
     public Color ObjectColor    { get; set; } = Color.CornflowerBlue;
     public double Ambient       { get; set; } = 0.15;
-
+    public double SpecularStrength { get; set; } = 0.5; // Сила спекулярных бликов
+    public double SpecularExponent { get; set; } = 32.0; // Жёсткость бликов (шероховатость)
 
     public MeshRenderer()
 	{
@@ -163,6 +164,15 @@ public sealed class MeshRenderer
         {
             // Гуро-шейдинг по Ламберту без Z-буфера
             RenderGouraud(g, viewport, transformed, screen, ndc, proj, vertexColors!);
+        }
+        else if (RenderMode == RenderMode.Phong)
+        {
+            if (Model.VertexNormals == null || Model.VertexNormals.Count != Model.Vertices.Count)
+                Model.GenerateVertexNormals();
+
+            var modelToViewPhong = viewWorld * ModelTransform;
+            var vertexNormalsViewPhong = Model.VertexNormals.Select(n => modelToViewPhong.TransformDirection(n).Normalize()).ToArray();
+            RenderPhong(g, viewport, transformed, screen, ndc, proj, vertexNormalsViewPhong);
         }
         else
         {
@@ -304,6 +314,130 @@ public sealed class MeshRenderer
     }
 
 
+
+    #endregion
+
+    #region Phong Shading
+
+    private Color ShadeNormalAtPoint(in Vec3 normalView, in Vec3 posView, in Vec3 lightView, in Vec3 viewDir)
+    {
+        // Источник света
+        var L = (lightView - posView).Normalize();
+        var N = normalView;
+        var R = Vec3Math.Reflect(-L, N);
+        var V = (-viewDir).Normalize();
+
+        double ndotl = Math.Max(0.0, Vec3Math.Dot(N, L));
+
+        double diffuse = ndotl;
+
+        var H = (L + V).Normalize();
+        double ndoth = Math.Max(0.0, Vec3Math.Dot(N, H));
+        double specular = Math.Pow(ndoth, SpecularExponent);
+
+        // I = Ia + Id + Is = Ambient + Diffuse * (1 - Ambient) + Specular * SpecularStrength
+        double intensity = Ambient + diffuse * (1.0 - Ambient) + specular * SpecularStrength;
+
+        intensity = Math.Clamp(intensity, 0.0, 1.0);
+
+        int r = (int)(ObjectColor.R * intensity);
+        int g = (int)(ObjectColor.G * intensity);
+        int b = (int)(ObjectColor.B * intensity);
+
+        return Color.FromArgb(Math.Min(255, r), Math.Min(255, g), Math.Min(255, b));
+    }
+
+    private void RasterizeTrianglePhong(Graphics g,
+                                      Vec2 p0, Vec2 p1, Vec2 p2,
+                                      Vec3 n0, Vec3 n1, Vec3 n2,
+                                      Vec3 v0, Vec3 v1, Vec3 v2,
+                                      Vec3 lightView,
+                                      Vec3 viewDir,
+                                      Rectangle viewport)
+    {
+        double minX = Math.Min(p0.X, Math.Min(p1.X, p2.X));
+        double maxX = Math.Max(p0.X, Math.Max(p1.X, p2.X));
+        double minY = Math.Min(p0.Y, Math.Min(p1.Y, p2.Y));
+        double maxY = Math.Max(p0.Y, Math.Max(p1.Y, p2.Y));
+
+        int x0 = (int)Math.Floor(Math.Max(minX, viewport.Left));
+        int x1 = (int)Math.Ceiling(Math.Min(maxX, viewport.Right - 1));
+        int y0 = (int)Math.Floor(Math.Max(minY, viewport.Top));
+        int y1 = (int)Math.Ceiling(Math.Min(maxY, viewport.Bottom - 1));
+
+        double area = EdgeFunction(p0, p1, p2);
+        if (Math.Abs(area) < 1e-12)
+            return;
+
+        const double eps = -1e-6;
+
+        using var brush = new SolidBrush(Color.Black);
+
+        for (int y = y0; y <= y1; y++)
+        {
+            for (int x = x0; x <= x1; x++)
+            {
+                var p = new Vec2(x + 0.5, y + 0.5);
+
+                double w0 = EdgeFunction(p1, p2, p) / area;
+                double w1 = EdgeFunction(p2, p0, p) / area;
+                double w2 = EdgeFunction(p0, p1, p) / area;
+
+                if (w0 >= eps && w1 >= eps && w2 >= eps)
+                {
+                    var posView = w0 * v0 + w1 * v1 + w2 * v2;
+
+                    var nViewUnnormalized = w0 * n0 + w1 * n1 + w2 * n2;
+
+                    var nViewNormalized = Vec3Math.Normalize(nViewUnnormalized);
+
+                    brush.Color = ShadeNormalAtPoint(nViewNormalized, posView, lightView, viewDir);
+
+                    g.FillRectangle(brush, x, y, 1, 1);
+                }
+            }
+        }
+    }
+
+    private void RenderPhong(Graphics g, Rectangle viewport, Vec3[] transformed,
+                            Vec2[] screen, Vec3[] ndc, Mat4 proj, Vec3[] vertexNormalsView)
+    {
+        if (Model == null) return;
+
+        var lightView = ViewTransform.TransformPoint(LightPosition);
+
+        var viewDir = new Vec3(0, 0, 1);
+
+        foreach (var face in Model.Faces)
+        {
+            if (CullBackFaces && !IsFaceFrontFacing(face, transformed, Projection))
+                continue;
+
+            var idx = face.Indices;
+            if (idx.Length < 3) continue;
+
+            for (int i = 1; i + 1 < idx.Length; i++)
+            {
+                int i0 = idx[0];
+                int i1 = idx[i];
+                int i2 = idx[i + 1];
+
+                var p0 = screen[i0];
+                var p1 = screen[i1];
+                var p2 = screen[i2];
+
+                var n0 = vertexNormalsView[i0];
+                var n1 = vertexNormalsView[i1];
+                var n2 = vertexNormalsView[i2];
+
+                var v0 = transformed[i0];
+                var v1 = transformed[i1];
+                var v2 = transformed[i2];
+
+                RasterizeTrianglePhong(g, p0, p1, p2, n0, n1, n2, v0, v1, v2, lightView, viewDir, viewport);
+            }
+        }
+    }
 
     #endregion
 

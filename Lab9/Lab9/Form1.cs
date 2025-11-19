@@ -597,6 +597,10 @@ namespace Lab9
                     break;
 
                 case Renderer.RenderMode.Gouraud:
+                    _renderer.RenderMode = Renderer.RenderMode.Phong;
+                    break;
+
+                case Renderer.RenderMode.Phong:
                     _renderer.RenderMode = Renderer.RenderMode.ZBuffer;
                     break;
 
