@@ -1,11 +1,12 @@
 using MathPrimitives;
+using System.Security.Cryptography.Xml;
 using Topology;
 
 namespace Renderer;
 
 public enum ProjectionType { Perspective, Axonometric }
 
-public enum RenderMode { Wireframe, ZBuffer, Gouraud, Phong }
+public enum RenderMode { Wireframe, ZBuffer, Gouraud, Phong, Textured }
 public sealed class MeshRenderer
 {
 	public	const double	StandardDistance = -200;
@@ -53,6 +54,10 @@ public sealed class MeshRenderer
 
     public Vec3 ViewDirection => _viewDir;
 
+    public Texture CurrentTexture { get; set; }
+    public bool UseTexture { get; set; } = false;
+    public bool UseBilinearFiltering { get; set; } = true;
+
 
 
     // Рисовальные настройки
@@ -91,6 +96,9 @@ public sealed class MeshRenderer
     public MeshRenderer()
 	{
         UpdateViewTransform();
+
+        // Текстура по умолчанию
+        CurrentTexture = Texture.Checkerboard();
     }
 	
 	public void ApplyModelTransformWorld(Mat4 m) => ModelTransform = m * ModelTransform;
@@ -153,12 +161,9 @@ public sealed class MeshRenderer
         // Инициализация Z-буфера если нужно
         if (RenderMode == RenderMode.ZBuffer)
         {
-            if (zBuffer == null || zBuffer.GetLength(0) != viewport.Width || zBuffer.GetLength(1) != viewport.Height)
-            {
-                InitializeZBuffer(viewport.Width, viewport.Height);
-            }
-            ClearZBuffer();
+          
             RenderZBuffer(g, viewport, transformed, screen, ndc, proj);
+
         }
         else if (RenderMode == RenderMode.Gouraud)
         {
@@ -174,6 +179,11 @@ public sealed class MeshRenderer
             var vertexNormalsViewPhong = Model.VertexNormals.Select(n => modelToViewPhong.TransformDirection(n).Normalize()).ToArray();
             RenderPhong(g, viewport, transformed, screen, ndc, proj, vertexNormalsViewPhong);
         }
+        else if (RenderMode == RenderMode.Textured)
+        {
+            RenderTextured(g, viewport, transformed, screen, ndc, proj);
+        }
+
         else
         {
             // Wireframe
@@ -441,38 +451,6 @@ public sealed class MeshRenderer
 
     #endregion
 
-    private void RenderZBuffer(Graphics g, Rectangle viewport, Vec3[] transformed,
-                              Vec2[] screen, Vec3[] ndc, Mat4 proj)
-    {
-        // Рендерим все грани с Z-буфером
-        foreach (var face in Model.Faces)
-        {
-            if (CullBackFaces && !IsFaceFrontFacing(face, transformed, Projection))
-                continue;
-
-            var idx = face.Indices;
-
-            // Разбиваем полигон на треугольники (фанаут)
-            for (int i = 1; i + 1 < idx.Length; i++)
-            {
-                int i0 = idx[0];
-                int i1 = idx[i];
-                int i2 = idx[i + 1];
-
-                var p0 = screen[i0];
-                var p1 = screen[i1];
-                var p2 = screen[i2];
-
-                // Получаем глубину 
-                double z0 = ndc[i0].Z;
-                double z1 = ndc[i1].Z;
-                double z2 = ndc[i2].Z;
-
-                RasterizeTriangle(g, p0, p1, p2, z0, z1, z2, viewport);
-            }
-        }
-    }
-
     private void RenderWireframe(Graphics g, Rectangle viewport, Vec3[] transformed,
                                 Vec2[] screen, Vec3[] ndc, Mat4 proj)
     {
@@ -707,82 +685,147 @@ public sealed class MeshRenderer
     public RenderMode RenderMode { get; set; } = RenderMode.Wireframe;
 
     private double[,] zBuffer;
-    private bool[,] zBufferInitialized;
+    private Color[,] colorBuffer;
+    private bool zBufferInitialized = false;
 
-    // Инициализация Z-буфера
+    // Инициализация Z-буфера и цветового буфера
     private void InitializeZBuffer(int width, int height)
     {
         zBuffer = new double[width, height];
-        zBufferInitialized = new bool[width, height];
-        ClearZBuffer();
+        colorBuffer = new Color[width, height];
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                zBuffer[x, y] = double.MaxValue;
+                colorBuffer[x, y] = Color.White; // фон
+            }
+        }
+        zBufferInitialized = true;
     }
 
-    private void ClearZBuffer()
+    // Очистка буферов
+    private void ClearZBuffer(int width, int height)
     {
-        if (zBuffer != null)
+        if (!zBufferInitialized || zBuffer.GetLength(0) != width || zBuffer.GetLength(1) != height)
         {
-            for (int y = 0; y < zBuffer.GetLength(1); y++)
+            InitializeZBuffer(width, height);
+            return;
+        }
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
             {
-                for (int x = 0; x < zBuffer.GetLength(0); x++)
-                {
-                    zBuffer[x, y] = double.MaxValue;
-                    zBufferInitialized[x, y] = false;
-                }
+                zBuffer[x, y] = double.MaxValue;
+                colorBuffer[x, y] = Color.White;
             }
         }
     }
 
-    // Основная функция растеризации треугольника
-    private void RasterizeTriangle(Graphics g, Vec2 p0, Vec2 p1, Vec2 p2,
-                                  double z0, double z1, double z2,
-                                  Rectangle viewport)
+    // Основная функция рендеринга с Z-буфером
+    private void RenderZBuffer(Graphics g, Rectangle viewport, Vec3[] transformed, Vec2[] screen, Vec3[] ndc, Mat4 proj)
     {
-        // Найдем bounding box треугольника
-        double minX = Math.Min(p0.X, Math.Min(p1.X, p2.X));
-        double maxX = Math.Max(p0.X, Math.Max(p1.X, p2.X));
-        double minY = Math.Min(p0.Y, Math.Min(p1.Y, p2.Y));
-        double maxY = Math.Max(p0.Y, Math.Max(p1.Y, p2.Y));
+        int width = viewport.Width;
+        int height = viewport.Height;
 
-        // Ограничим bounding box размерами viewport'а
-        minX = Math.Max(minX, viewport.Left);
-        maxX = Math.Min(maxX, viewport.Right - 1);
-        minY = Math.Max(minY, viewport.Top);
-        maxY = Math.Min(maxY, viewport.Bottom - 1);
+        ClearZBuffer(width, height);
 
-        // Проходим по всем пикселям в bounding box
-        for (double y = minY; y <= maxY; y++)
+
+        // Рендерим все грани в Z-буфер
+        foreach (var face in Model.Faces)
         {
-            for (double x = minX; x <= maxX; x++)
+            if (CullBackFaces && !IsFaceFrontFacing(face, transformed, Projection))
+                continue;
+
+            var idx = face.Indices;
+            if (idx.Length < 3) continue;
+
+            // Разбиваем полигон на треугольники
+            for (int i = 1; i + 1 < idx.Length; i++)
             {
-                Vec2 p = new Vec2(x, y);
+                int i0 = idx[0];
+                int i1 = idx[i];
+                int i2 = idx[i + 1];
+
+                var p0 = screen[i0];
+                var p1 = screen[i1];
+                var p2 = screen[i2];
+
+                // Получаем глубину в clip space (после проекции)
+                double z0 = ndc[i0].Z;
+                double z1 = ndc[i1].Z;
+                double z2 = ndc[i2].Z;
+
+                // Получаем мировые координаты для вычисления нормали
+                var v0 = transformed[i0];
+                var v1 = transformed[i1];
+                var v2 = transformed[i2];
+
+                // Вычисляем нормаль грани для освещения
+                var faceNormal = Vec3Math.Cross(v1 - v0, v2 - v0).Normalize();
+                var lightDir = (LightPosition - v0).Normalize();
+                double intensity = Math.Max(0.1, Vec3Math.Dot(faceNormal, lightDir));
+
+                Color faceColor = ShadeColor(ObjectColor, intensity);
+
+                RasterizeTriangleZBuffer(p0, p1, p2, z0, z1, z2, faceColor, viewport);
+            }
+        }
+
+        // Отображаем результат из цветового буфера
+        DisplayZBuffer(g, viewport);
+    }
+
+
+    // Растеризация треугольника с Z-буфером
+    private void RasterizeTriangleZBuffer(Vec2 p0, Vec2 p1, Vec2 p2, double z0, double z1, double z2, Color color, Rectangle viewport)
+    {
+        // Находим bounding box треугольника в экранных координатах
+        double minX = Math.Max(viewport.Left, Math.Min(p0.X, Math.Min(p1.X, p2.X)));
+        double maxX = Math.Min(viewport.Right - 1, Math.Max(p0.X, Math.Max(p1.X, p2.X)));
+        double minY = Math.Max(viewport.Top, Math.Min(p0.Y, Math.Min(p1.Y, p2.Y)));
+        double maxY = Math.Min(viewport.Bottom - 1, Math.Max(p0.Y, Math.Max(p1.Y, p2.Y)));
+
+        if (minX > maxX || minY > maxY) return;
+
+        // Преобразуем в целочисленные координаты для пикселей
+        int startX = (int)Math.Floor(minX);
+        int endX = (int)Math.Ceiling(maxX);
+        int startY = (int)Math.Floor(minY);
+        int endY = (int)Math.Ceiling(maxY);
+
+        // Вычисляем площадь треугольника для барицентрических координат
+        double area = EdgeFunction(p0, p1, p2);
+        if (Math.Abs(area) < 1e-12) return;
+
+        for (int y = startY; y <= endY; y++)
+        {
+            for (int x = startX; x <= endX; x++)
+            {
+                // Точка в центре пикселя
+                Vec2 p = new Vec2(x + 0.5, y + 0.5);
 
                 // Вычисляем барицентрические координаты
-                double area = EdgeFunction(p0, p1, p2);
                 double w0 = EdgeFunction(p1, p2, p) / area;
                 double w1 = EdgeFunction(p2, p0, p) / area;
                 double w2 = EdgeFunction(p0, p1, p) / area;
 
-                // Если точка внутри треугольника
-                if (w0 >= 0 && w1 >= 0 && w2 >= 0)
+                // Если точка внутри треугольника (с небольшим допуском)
+                if (w0 >= -1e-6 && w1 >= -1e-6 && w2 >= -1e-6)
                 {
-                    // Интерполируем глубину
+                    // Перспективно-корректная интерполяция глубины
                     double z = w0 * z0 + w1 * z1 + w2 * z2;
 
-                    int ix = (int)Math.Round(x);
-                    int iy = (int)Math.Round(y);
-
-                    // Проверяем границы Z-буфера
-                    if (ix >= 0 && ix < zBuffer.GetLength(0) &&
-                        iy >= 0 && iy < zBuffer.GetLength(1))
+                    // Проверяем границы буфера
+                    if (x >= 0 && x < zBuffer.GetLength(0) && y >= 0 && y < zBuffer.GetLength(1))
                     {
-                        // Z-тест (чем меньше Z, тем ближе объект)
-                        if (z < zBuffer[ix, iy] || !zBufferInitialized[ix, iy])
+                        // Z-тест (в NDC чем меньше Z, тем ближе объект)
+                        if (z < zBuffer[x, y])
                         {
-                            zBuffer[ix, iy] = z;
-                            zBufferInitialized[ix, iy] = true;
-
-                            // Рисуем пиксель
-                            g.FillRectangle(Brushes.Black, ix, iy, 1, 1);
+                            zBuffer[x, y] = z;
+                            colorBuffer[x, y] = color;
                         }
                     }
                 }
@@ -790,9 +833,131 @@ public sealed class MeshRenderer
         }
     }
 
+    // Отображение содержимого Z-буфера
+    private void DisplayZBuffer(Graphics g, Rectangle viewport)
+    {
+        using (var bitmap = new Bitmap(viewport.Width, viewport.Height))
+        {
+            for (int y = 0; y < viewport.Height; y++)
+            {
+                for (int x = 0; x < viewport.Width; x++)
+                {
+                    bitmap.SetPixel(x, y, colorBuffer[x, y]);
+                }
+            }
+            g.DrawImage(bitmap, viewport.Left, viewport.Top);
+        }
+    }
+
     // Вспомогательная функция для вычисления ориентации
     private static double EdgeFunction(Vec2 a, Vec2 b, Vec2 c)
     {
         return (b.X - a.X) * (c.Y - a.Y) - (b.Y - a.Y) * (c.X - a.X);
+    }
+
+    private void RenderTextured(Graphics g, Rectangle viewport, Vec3[] transformed,
+                             Vec2[] screen, Vec3[] ndc, Mat4 proj)
+    {
+        if (Model?.TextureCoords == null || Model.TextureCoords.Count != Model.Vertices.Count)
+        {
+            // Если нет текстурных координат, используем простые
+            Model?.GenerateSimpleTextureCoords();
+        }
+
+        int width = viewport.Width;
+        int height = viewport.Height;
+
+        ClearZBuffer(width, height);
+
+        foreach (var face in Model.Faces)
+        {
+            if (CullBackFaces && !IsFaceFrontFacing(face, transformed, Projection))
+                continue;
+
+            var idx = face.Indices;
+            if (idx.Length < 3) continue;
+
+            // Разбиваем на треугольники
+            for (int i = 1; i + 1 < idx.Length; i++)
+            {
+                int i0 = idx[0];
+                int i1 = idx[i];
+                int i2 = idx[i + 1];
+
+                var p0 = screen[i0];
+                var p1 = screen[i1];
+                var p2 = screen[i2];
+
+                double z0 = ndc[i0].Z;
+                double z1 = ndc[i1].Z;
+                double z2 = ndc[i2].Z;
+
+                // Получаем UV-координаты
+                var uv0 = Model.TextureCoords[i0];
+                var uv1 = Model.TextureCoords[i1];
+                var uv2 = Model.TextureCoords[i2];
+
+                RasterizeTexturedTriangle(p0, p1, p2, z0, z1, z2, uv0, uv1, uv2, viewport);
+            }
+        }
+
+        DisplayZBuffer(g, viewport);
+    }
+
+    private void RasterizeTexturedTriangle(Vec2 p0, Vec2 p1, Vec2 p2,
+                                         double z0, double z1, double z2,
+                                         Vec2 uv0, Vec2 uv1, Vec2 uv2,
+                                         Rectangle viewport)
+    {
+        double minX = Math.Max(viewport.Left, Math.Min(p0.X, Math.Min(p1.X, p2.X)));
+        double maxX = Math.Min(viewport.Right - 1, Math.Max(p0.X, Math.Max(p1.X, p2.X)));
+        double minY = Math.Max(viewport.Top, Math.Min(p0.Y, Math.Min(p1.Y, p2.Y)));
+        double maxY = Math.Min(viewport.Bottom - 1, Math.Max(p0.Y, Math.Max(p1.Y, p2.Y)));
+
+        if (minX > maxX || minY > maxY) return;
+
+        int startX = (int)Math.Floor(minX);
+        int endX = (int)Math.Ceiling(maxX);
+        int startY = (int)Math.Floor(minY);
+        int endY = (int)Math.Ceiling(maxY);
+
+        double area = EdgeFunction(p0, p1, p2);
+        if (Math.Abs(area) < 1e-12) return;
+
+        for (int y = startY; y <= endY; y++)
+        {
+            for (int x = startX; x <= endX; x++)
+            {
+                Vec2 p = new Vec2(x + 0.5, y + 0.5);
+
+                double w0 = EdgeFunction(p1, p2, p) / area;
+                double w1 = EdgeFunction(p2, p0, p) / area;
+                double w2 = EdgeFunction(p0, p1, p) / area;
+
+                if (w0 >= -1e-6 && w1 >= -1e-6 && w2 >= -1e-6)
+                {
+                    double z = w0 * z0 + w1 * z1 + w2 * z2;
+
+                    // ИНТЕРПОЛЯЦИЯ UV-КООРДИНАТ
+                    double u = w0 * uv0.X + w1 * uv1.X + w2 * uv2.X;
+                    double v = w0 * uv0.Y + w1 * uv1.Y + w2 * uv2.Y;
+
+                    if (x >= 0 && x < zBuffer.GetLength(0) && y >= 0 && y < zBuffer.GetLength(1))
+                    {
+                        if (z < zBuffer[x, y])
+                        {
+                            zBuffer[x, y] = z;
+
+                            // СЕМПЛИРОВАНИЕ ТЕКСТУРЫ
+                            Color texColor = UseBilinearFiltering
+                                ? CurrentTexture.SampleBilinear(u, v)
+                                : CurrentTexture.Sample(u, v);
+
+                            colorBuffer[x, y] = texColor;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

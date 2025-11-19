@@ -15,6 +15,7 @@ public sealed class Polyhedron
 	public readonly List<Face> Faces = new();
 
     public List<Vec3>? VertexNormals;
+    public List<Vec2>? TextureCoords;
 
 
     public Polyhedron(IEnumerable<Vec3> vertices, IEnumerable<Face> faces)
@@ -292,5 +293,61 @@ public sealed class Polyhedron
 
         var sum = Vertices.Aggregate(Vec3.Zero, (acc, v) => acc + v);
         return sum * (1.0 / Vertices.Count);
+    }
+
+    public void GenerateSimpleTextureCoords()
+    {
+        TextureCoords = new List<Vec2>();
+
+        foreach (var vertex in Vertices)
+        {
+            // Простая проекция: используем X и Z координаты для UV
+            // Нормализуем к диапазону [0, 1]
+            double u = (vertex.X + 1.0) / 2.0;
+            double v = (vertex.Z + 1.0) / 2.0;
+
+            TextureCoords.Add(new Vec2(u, v));
+        }
+    }
+
+    // Для правильных многогранников - специальные UV-развертки
+    public void GenerateCubeTextureCoords()
+    {
+        TextureCoords = new List<Vec2>();
+
+        // Кубическая UV-развертка
+        foreach (var vertex in Vertices)
+        {
+            double u = 0, v = 0;
+
+            // Определяем грань по наибольшей координате
+            double absX = Math.Abs(vertex.X);
+            double absY = Math.Abs(vertex.Y);
+            double absZ = Math.Abs(vertex.Z);
+
+            if (absX >= absY && absX >= absZ)
+            {
+                // Грань X
+                u = (vertex.Z + 1) / 2;
+                v = (vertex.Y + 1) / 2;
+                if (vertex.X < 0) u = 1 - u; // Обратная сторона
+            }
+            else if (absY >= absX && absY >= absZ)
+            {
+                // Грань Y
+                u = (vertex.X + 1) / 2;
+                v = (vertex.Z + 1) / 2;
+                if (vertex.Y < 0) v = 1 - v;
+            }
+            else
+            {
+                // Грань Z
+                u = (vertex.X + 1) / 2;
+                v = (vertex.Y + 1) / 2;
+                if (vertex.Z < 0) u = 1 - u;
+            }
+
+            TextureCoords.Add(new Vec2(u, v));
+        }
     }
 }

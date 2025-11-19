@@ -592,21 +592,21 @@ namespace Lab9
         {
             switch (_renderer.RenderMode)
             {
-                case Renderer.RenderMode.Wireframe:
-                    _renderer.RenderMode = Renderer.RenderMode.Gouraud;
+                case RenderMode.Wireframe:
+                    _renderer.RenderMode = RenderMode.Gouraud;
                     break;
-
-                case Renderer.RenderMode.Gouraud:
-                    _renderer.RenderMode = Renderer.RenderMode.Phong;
+                case RenderMode.Gouraud:
+                    _renderer.RenderMode = RenderMode.Phong;
                     break;
-
-                case Renderer.RenderMode.Phong:
-                    _renderer.RenderMode = Renderer.RenderMode.ZBuffer;
+                case RenderMode.Phong:
+                    _renderer.RenderMode = RenderMode.ZBuffer;
                     break;
-
-                case Renderer.RenderMode.ZBuffer:
+                case RenderMode.ZBuffer:
+                    _renderer.RenderMode = RenderMode.Textured;
+                    break;
+                case RenderMode.Textured:
                 default:
-                    _renderer.RenderMode = Renderer.RenderMode.Wireframe;
+                    _renderer.RenderMode = RenderMode.Wireframe;
                     break;
             }
 
@@ -655,5 +655,24 @@ namespace Lab9
         }
 
         #endregion
+
+        private void btnTextureChecker_Click_1(object sender, EventArgs e)
+        {
+            _renderer.CurrentTexture = Texture.Checkerboard();
+            pb.Invalidate(); // Перерисовать
+        }
+
+        private void btnTextureGradient_Click_1(object sender, EventArgs e)
+        {
+            _renderer.CurrentTexture = Texture.Gradient();
+            pb.Invalidate();
+        }
+
+        private void btnToggleFiltering_Click(object sender, EventArgs e)
+        {
+            _renderer.UseBilinearFiltering = !_renderer.UseBilinearFiltering;
+            btnToggleFiltering.Text = "Bilinear: " + (_renderer.UseBilinearFiltering ? "On" : "Off");
+            pb.Invalidate();
+        }
     }
 }
