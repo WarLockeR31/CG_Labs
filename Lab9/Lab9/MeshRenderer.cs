@@ -207,11 +207,9 @@ public sealed class MeshRenderer
         if (Model == null)
             return Array.Empty<Color>();
 
-        // Генерим нормали, если их ещё нет
         if (Model.VertexNormals == null || Model.VertexNormals.Count != Model.Vertices.Count)
             Model.GenerateVertexNormals();
 
-        // Источник света переводим во view-пространство
         var lightView = ViewTransform.TransformPoint(LightPosition);
 
         var colors = new Color[Model.Vertices.Count];
@@ -248,7 +246,6 @@ public sealed class MeshRenderer
             var idx = face.Indices;
             if (idx.Length < 3) continue;
 
-            // Фан-триангуляция n-угольника
             for (int i = 1; i + 1 < idx.Length; i++)
             {
                 int i0 = idx[0];
@@ -273,13 +270,11 @@ public sealed class MeshRenderer
                                       Color c0, Color c1, Color c2,
                                       Rectangle viewport)
     {
-        // обычный bounding box в вещественных
         double minX = Math.Min(p0.X, Math.Min(p1.X, p2.X));
         double maxX = Math.Max(p0.X, Math.Max(p1.X, p2.X));
         double minY = Math.Min(p0.Y, Math.Min(p1.Y, p2.Y));
         double maxY = Math.Max(p0.Y, Math.Max(p1.Y, p2.Y));
 
-        // приводим к пиксельным целым координатам
         int x0 = (int)Math.Floor(Math.Max(minX, viewport.Left));
         int x1 = (int)Math.Ceiling(Math.Min(maxX, viewport.Right - 1));
         int y0 = (int)Math.Floor(Math.Max(minY, viewport.Top));
@@ -287,9 +282,9 @@ public sealed class MeshRenderer
 
         double area = EdgeFunction(p0, p1, p2);
         if (Math.Abs(area) < 1e-12)
-            return; // вырожденный треугольник
+            return;
 
-        const double eps = -1e-6; // небольшой допуск внутрь
+        const double eps = -1e-6; 
 
         using var brush = new SolidBrush(Color.Black);
 
@@ -297,7 +292,6 @@ public sealed class MeshRenderer
         {
             for (int x = x0; x <= x1; x++)
             {
-                // выборка в центре пикселя
                 var p = new Vec2(x + 0.5, y + 0.5);
 
                 double w0 = EdgeFunction(p1, p2, p) / area;
@@ -306,7 +300,6 @@ public sealed class MeshRenderer
 
                 if (w0 >= eps && w1 >= eps && w2 >= eps)
                 {
-                    // Интерполяция цвета по вершинам (Гуро)
                     double r = w0 * c0.R + w1 * c1.R + w2 * c2.R;
                     double gCol = w0 * c0.G + w1 * c1.G + w2 * c2.G;
                     double b = w0 * c0.B + w1 * c1.B + w2 * c2.B;
