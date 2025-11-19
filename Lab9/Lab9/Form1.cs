@@ -670,8 +670,8 @@ namespace Lab9
 
         private void btnToggleFiltering_Click(object sender, EventArgs e)
         {
-            _renderer.UseBilinearFiltering = !_renderer.UseBilinearFiltering;
-            btnToggleFiltering.Text = "Bilinear: " + (_renderer.UseBilinearFiltering ? "On" : "Off");
+            _renderer.UseBilinearFilter = !_renderer.UseBilinearFilter;
+            btnToggleFiltering.Text = "Bilinear: " + (_renderer.UseBilinearFilter ? "On" : "Off");
             pb.Invalidate();
         }
     }
