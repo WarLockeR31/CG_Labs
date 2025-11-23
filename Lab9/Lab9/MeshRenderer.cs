@@ -355,31 +355,30 @@ public sealed class MeshRenderer
 	        }
 	    }
 	}
-	
+
     #endregion
 
     #region Phong Shading
-	//---------------------------------------------------- PHONG ----------------------------------------------------
+    //---------------------------------------------------- PHONG ----------------------------------------------------
     private Color ShadeNormalAtPoint(in Vec3 normalView, in Vec3 posView, in Vec3 lightView, in Vec3 viewDir)
     {
-        // Источник света
         var L = (lightView - posView).Normalize();
         var N = normalView;
-        var R = Vec3Math.Reflect(-L, N);
-        var V = (-viewDir).Normalize();
 
         double ndotl = Math.Max(0.0, Vec3Math.Dot(N, L));
 
-        double diffuse = ndotl;
+        // === ТУНШЕЙДИНГ: дискретизация освещенности ===
+        double intensity;
+        if (ndotl > 0.9)
+            intensity = 1.0;
+        else if (ndotl > 0.5)
+            intensity = 0.7;
+        else if (ndotl > 0.2)
+            intensity = 0.4;
+        else
+            intensity = 0.15;
 
-        var H = (L + V).Normalize();
-        double ndoth = Math.Max(0.0, Vec3Math.Dot(N, H));
-        double specular = Math.Pow(ndoth, SpecularExponent);
-
-        // I = Ia + Id + Is = Ambient + Diffuse * (1 - Ambient) + Specular * SpecularStrength
-        double intensity = Ambient + diffuse * (1.0 - Ambient) + specular * SpecularStrength;
-
-        intensity = Math.Clamp(intensity, 0.0, 1.0);
+        intensity = Math.Max(intensity, Ambient);
 
         int r = (int)(ObjectColor.R * intensity);
         int g = (int)(ObjectColor.G * intensity);
