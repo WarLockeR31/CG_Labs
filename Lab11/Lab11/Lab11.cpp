@@ -7,6 +7,54 @@
 #include <sstream>
 #include <vector>
 
+enum class Figure
+{
+    Quad,      
+    Fan,       
+    Pentagon,
+    Count
+};
+
+
+float quadVertices[] = {
+    //   x       y       r   g   b
+    -0.3f, -0.3f,       0.f, 1.f, 0.f,
+     0.3f, -0.3f,       0.f, 1.f, 0.f,
+    -0.3f,  0.3f,       0.f, 1.f, 0.f,
+     0.3f,  0.3f,       0.f, 1.f, 0.f
+};
+
+float fanVertices[] = {
+     0.0f,  0.0f,       1.f, 0.f, 0.f,
+
+     0.433f,  0.250f,   1.f, 0.f, 0.f,  // 30°
+     0.250f,  0.433f,   1.f, 0.f, 0.f,  // 60°
+     0.000f,  0.500f,   1.f, 0.f, 0.f,  // 90°
+    -0.250f,  0.433f,   1.f, 0.f, 0.f,  // 120°
+    -0.433f,  0.250f,   1.f, 0.f, 0.f   // 150°
+};
+
+
+float pentagonVertices[] = {
+    0.0f,   0.0f,       0.f, 0.f, 1.f,
+
+    0.0f,   0.4f,       0.f, 0.f, 1.f,  
+    0.380f, 0.124f,     0.f, 0.f, 1.f,
+    0.235f,-0.324f,     0.f, 0.f, 1.f,
+   -0.235f,-0.324f,     0.f, 0.f, 1.f,
+   -0.380f, 0.124f,     0.f, 0.f, 1.f,
+
+    0.0f,   0.4f,       0.f, 0.f, 1.f
+};
+
+Figure next(Figure s)
+{
+    using U = std::underlying_type_t<Figure>;
+    U val = static_cast<U>(s);
+    val = (val + 1) % static_cast<U>(Figure::Count);
+    return static_cast<Figure>(val);
+}
+
 void ShaderLog(GLuint shader)
 {
     GLint infologLen = 0;
@@ -104,23 +152,11 @@ int main()
     glDeleteShader(fs);
 
     // 6. VBO + VAO 
-    float vertices[] = {
-        //  position   //   color
-        -1.0f, -1.0f,   0.f, 1.f, 0.f,
-         1.0f, -1.0f,   0.f, 1.f, 0.f,
-         0.0f,  1.0f,   0.f, 1.f, 0.f
-    };
-
-    GLuint VBO = 0;
-    glGenBuffers(1, &VBO);
-
-    GLuint VAO = 0;
-    glGenVertexArrays(1, &VAO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    
+    GLuint VBOs[3];
+    GLuint VAOs[3];
+    glGenBuffers(3, VBOs);
+    glGenVertexArrays(3, VAOs);
 
     // Attributes
     GLint posLoc   = glGetAttribLocation(program, "aPos");
@@ -131,18 +167,33 @@ int main()
         std::cerr << "Attribute not found in shader\n";
     }
      
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-     
-    // layout(location = 0) vec2 aPos;
-    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE,
-                          5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(posLoc);
-     
-    // layout(location = 1) vec3 aColor;
-    glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE,
-                          5 * sizeof(float), (void*)(2 * sizeof(float)));
-    glEnableVertexAttribArray(colorLoc);
+    float* vertexData[3] = { quadVertices, fanVertices, pentagonVertices };
+    GLsizeiptr vertexSizes[3] = {
+        sizeof(quadVertices),
+        sizeof(fanVertices),
+        sizeof(pentagonVertices)
+    };
+
+    for (int i = 0; i < 3; ++i)
+    {
+        glBindVertexArray(VAOs[i]);
+        glBindBuffer(GL_ARRAY_BUFFER, VBOs[i]);
+        glBufferData(GL_ARRAY_BUFFER, vertexSizes[i], vertexData[i], GL_STATIC_DRAW);
+
+        glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE,
+                              5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(posLoc);
+
+        glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE,
+                              5 * sizeof(float), (void*)(2 * sizeof(float)));
+        glEnableVertexAttribArray(colorLoc);
+    }
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    
+    Figure currentFigure = Figure::Quad;
 
     // Main cycle
     while (window.isOpen())
@@ -151,14 +202,42 @@ int main()
         {
             if (event->is<sf::Event::Closed>())
                 window.close();
+
+            if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
+            {
+                switch (keyPressed->code)
+                {
+                case sf::Keyboard::Key::Num1:
+                    currentFigure = next(currentFigure);
+                    break;
+                default:
+                    break;
+                }
+            }
         }
+            
 
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(program);
-        glBindVertexArray(VAO);
 
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        switch (currentFigure)
+        {
+        case Figure::Quad:
+            glBindVertexArray(VAOs[0]);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            break;
+
+        case Figure::Fan:
+            glBindVertexArray(VAOs[1]);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 6);
+            break;
+
+        case Figure::Pentagon:
+            glBindVertexArray(VAOs[2]);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 7);
+            break;
+        }
 
         glBindVertexArray(0);
         glUseProgram(0);
@@ -174,8 +253,8 @@ int main()
 
     // Cleanup 
     glDeleteProgram(program);
-    glDeleteBuffers(1, &VBO);
-    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(3, VBOs);
+    glDeleteVertexArrays(3, VAOs);
 
     return 0;
 }
