@@ -9,42 +9,39 @@
 
 enum class Figure
 {
-    Quad,      
-    Fan,       
+    Quad,
+    Fan,
     Pentagon,
     Count
 };
 
-
 float quadVertices[] = {
-    //   x       y       r   g   b
-    -0.3f, -0.3f,       0.f, 1.f, 0.f,
-     0.3f, -0.3f,       0.f, 1.f, 0.f,
-    -0.3f,  0.3f,       0.f, 1.f, 0.f,
-     0.3f,  0.3f,       0.f, 1.f, 0.f
+    -0.3f, -0.3f,       1.f, 0.f, 0.f,  
+     0.3f, -0.3f,       0.f, 1.f, 0.f,  
+    -0.3f,  0.3f,       0.f, 0.f, 1.f,  
+     0.3f,  0.3f,       1.f, 1.f, 0.f   
 };
 
 float fanVertices[] = {
-     0.0f,  0.0f,       1.f, 0.f, 0.f,
+     0.0f,  0.0f,       1.f, 1.f, 1.f,  
 
-     0.433f,  0.250f,   1.f, 0.f, 0.f,  // 30°
-     0.250f,  0.433f,   1.f, 0.f, 0.f,  // 60°
-     0.000f,  0.500f,   1.f, 0.f, 0.f,  // 90°
-    -0.250f,  0.433f,   1.f, 0.f, 0.f,  // 120°
-    -0.433f,  0.250f,   1.f, 0.f, 0.f   // 150°
+     0.433f,  0.250f,   1.f, 0.f, 0.f,  
+     0.250f,  0.433f,   0.f, 1.f, 0.f,  
+     0.000f,  0.500f,   0.f, 0.f, 1.f,  
+    -0.250f,  0.433f,   1.f, 1.f, 0.f,  
+    -0.433f,  0.250f,   1.f, 0.f, 1.f   
 };
 
-
 float pentagonVertices[] = {
-    0.0f,   0.0f,       0.f, 0.f, 1.f,
+    0.0f,   0.0f,       1.f, 1.f, 1.f,  
 
-    0.0f,   0.4f,       0.f, 0.f, 1.f,  
-    0.380f, 0.124f,     0.f, 0.f, 1.f,
-    0.235f,-0.324f,     0.f, 0.f, 1.f,
-   -0.235f,-0.324f,     0.f, 0.f, 1.f,
-   -0.380f, 0.124f,     0.f, 0.f, 1.f,
+    0.0f,   0.4f,       1.f, 0.f, 0.f,  
+    0.380f, 0.124f,     0.f, 1.f, 0.f,  
+    0.235f,-0.324f,     0.f, 0.f, 1.f,  
+   -0.235f,-0.324f,     1.f, 1.f, 0.f,  
+   -0.380f, 0.124f,     1.f, 0.f, 1.f,  
 
-    0.0f,   0.4f,       0.f, 0.f, 1.f
+    0.0f,   0.4f,       1.f, 0.f, 0.f   
 };
 
 Figure next(Figure s)
@@ -104,7 +101,7 @@ int main()
     sf::VideoMode mode({ 800, 600 });
     sf::RenderWindow window(
         mode,
-        "SFML + OpenGL",
+        "SFML + OpenGL - Градиентная закраска",
         sf::Style::Default,
         sf::State::Windowed,
         settings
@@ -122,9 +119,9 @@ int main()
     std::cout << "GLEW init OK\n";
 
     // Shaders source
-    std::string vertexCode   = LoadFile("shader.vert");
+    std::string vertexCode = LoadFile("shader.vert");
     std::string fragmentCode = LoadFile("shader.frag");
-    
+
     const char* vertexSrc = vertexCode.c_str();
     const char* fragmentSrc = fragmentCode.c_str();
 
@@ -151,22 +148,21 @@ int main()
     glDeleteShader(vs);
     glDeleteShader(fs);
 
-    // 6. VBO + VAO 
-    
+    // VBO + VAO 
     GLuint VBOs[3];
     GLuint VAOs[3];
     glGenBuffers(3, VBOs);
     glGenVertexArrays(3, VAOs);
 
     // Attributes
-    GLint posLoc   = glGetAttribLocation(program, "aPos");
+    GLint posLoc = glGetAttribLocation(program, "aPos");
     GLint colorLoc = glGetAttribLocation(program, "aColor");
-     
+
     if (posLoc == -1 || colorLoc == -1)
     {
         std::cerr << "Attribute not found in shader\n";
     }
-     
+
     float* vertexData[3] = { quadVertices, fanVertices, pentagonVertices };
     GLsizeiptr vertexSizes[3] = {
         sizeof(quadVertices),
@@ -181,18 +177,17 @@ int main()
         glBufferData(GL_ARRAY_BUFFER, vertexSizes[i], vertexData[i], GL_STATIC_DRAW);
 
         glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE,
-                              5 * sizeof(float), (void*)0);
+            5 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(posLoc);
 
         glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE,
-                              5 * sizeof(float), (void*)(2 * sizeof(float)));
+            5 * sizeof(float), (void*)(2 * sizeof(float)));
         glEnableVertexAttribArray(colorLoc);
     }
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    
     Figure currentFigure = Figure::Quad;
 
     // Main cycle
@@ -215,7 +210,7 @@ int main()
                 }
             }
         }
-            
+
 
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -243,7 +238,7 @@ int main()
         glUseProgram(0);
 
         window.display();
-        
+
         GLenum errCode = glGetError();
         if (errCode != GL_NO_ERROR)
         {
