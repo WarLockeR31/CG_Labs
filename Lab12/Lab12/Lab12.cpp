@@ -67,8 +67,8 @@ void makeRotY(float a, float m[9])
     float c = std::cos(a);
     float s = std::sin(a);
 
-    m[0] =  c; m[3] = 0;  m[6] = s;
-    m[1] =  0; m[4] = 1;  m[7] = 0;
+    m[0] = c; m[3] = 0;  m[6] = s;
+    m[1] = 0; m[4] = 1;  m[7] = 0;
     m[2] = -s; m[5] = 0;  m[8] = c;
 }
 
@@ -78,31 +78,31 @@ void makeRotZ(float a, float m[9])
     float s = std::sin(a);
 
     m[0] = c;  m[3] = -s; m[6] = 0;
-    m[1] = s;  m[4] =  c; m[7] = 0;
-    m[2] = 0;  m[5] =  0; m[8] = 1;
+    m[1] = s;  m[4] = c; m[7] = 0;
+    m[2] = 0;  m[5] = 0; m[8] = 1;
 }
 
 void mulMat3(const float A[9], const float B[9], float R[9])
 {
     for (int c = 0; c < 3; ++c)
         for (int r = 0; r < 3; ++r)
-            R[c*3 + r] =
-                A[0*3 + r] * B[c*3 + 0] +
-                A[1*3 + r] * B[c*3 + 1] +
-                A[2*3 + r] * B[c*3 + 2];
+            R[c * 3 + r] =
+            A[0 * 3 + r] * B[c * 3 + 0] +
+            A[1 * 3 + r] * B[c * 3 + 1] +
+            A[2 * 3 + r] * B[c * 3 + 2];
 }
 
 int main()
 {
     // Window
     sf::ContextSettings settings{};
-    settings.depthBits    = 24;
-    settings.stencilBits  = 8;
+    settings.depthBits = 24;
+    settings.stencilBits = 8;
     settings.majorVersion = 3;
     settings.minorVersion = 3;
 
     sf::RenderWindow window(
-        sf::VideoMode({800u, 600u}),
+        sf::VideoMode({ 800u, 600u }),
         "Lab 12 - Tetrahedron & Textured Cube",
         sf::Style::Default,
         sf::State::Windowed,
@@ -153,7 +153,7 @@ int main()
          0.000f,  0.500f,  0.000f,  1.000f,  0.000f,  0.000f,  0.0f, 0.0f,
         -0.500f, -0.500f,  0.500f,  0.000f,  1.000f,  0.000f,  0.0f, 0.0f,
          0.500f, -0.500f,  0.500f,  0.000f,  0.000f,  1.000f,  0.0f, 0.0f,
-        
+
          0.000f,  0.500f,  0.000f,  1.000f,  0.000f,  0.000f,  0.0f, 0.0f,
          0.500f, -0.500f,  0.500f,  0.000f,  0.000f,  1.000f,  0.0f, 0.0f,
          0.000f, -0.500f, -0.500f,  1.000f,  1.000f,  0.000f,  0.0f, 0.0f,
@@ -175,7 +175,7 @@ int main()
         -0.500f, -0.500f, +0.500f,  0.000f,  0.000f,  1.000f,  0.0f, 0.0f,
         +0.500f, +0.500f, +0.500f,  1.000f,  1.000f,  1.000f,  1.0f, 1.0f,
         -0.500f, +0.500f, +0.500f,  0.000f,  1.000f,  1.000f,  0.0f, 1.0f,
-    
+
         // back
         +0.500f, -0.500f, -0.500f,  1.000f,  0.000f,  0.000f,  0.0f, 0.0f,
         -0.500f, -0.500f, -0.500f,  0.000f,  0.000f,  0.000f,  1.0f, 0.0f,
@@ -183,7 +183,7 @@ int main()
         +0.500f, -0.500f, -0.500f,  1.000f,  0.000f,  0.000f,  0.0f, 0.0f,
         -0.500f, +0.500f, -0.500f,  0.000f,  1.000f,  0.000f,  1.0f, 1.0f,
         +0.500f, +0.500f, -0.500f,  1.000f,  1.000f,  0.000f,  0.0f, 1.0f,
-    
+
         // left
         -0.500f, -0.500f, +0.500f,  0.000f,  0.000f,  1.000f,  1.0f, 0.0f,
         -0.500f, -0.500f, -0.500f,  0.000f,  0.000f,  0.000f,  0.0f, 0.0f,
@@ -191,7 +191,7 @@ int main()
         -0.500f, -0.500f, +0.500f,  0.000f,  0.000f,  1.000f,  1.0f, 0.0f,
         -0.500f, +0.500f, -0.500f,  0.000f,  1.000f,  0.000f,  0.0f, 1.0f,
         -0.500f, +0.500f, +0.500f,  0.000f,  1.000f,  1.000f,  1.0f, 1.0f,
-    
+
         // right
         +0.500f, -0.500f, -0.500f,  1.000f,  0.000f,  0.000f,  1.0f, 0.0f,
         +0.500f, -0.500f, +0.500f,  1.000f,  0.000f,  1.000f,  0.0f, 0.0f,
@@ -199,7 +199,7 @@ int main()
         +0.500f, -0.500f, -0.500f,  1.000f,  0.000f,  0.000f,  1.0f, 0.0f,
         +0.500f, +0.500f, +0.500f,  1.000f,  1.000f,  1.000f,  0.0f, 1.0f,
         +0.500f, +0.500f, -0.500f,  1.000f,  1.000f,  0.000f,  1.0f, 1.0f,
-    
+
         // top
         -0.500f, +0.500f, +0.500f,  0.000f,  1.000f,  1.000f,  0.0f, 0.0f,
         +0.500f, +0.500f, +0.500f,  1.000f,  1.000f,  1.000f,  1.0f, 0.0f,
@@ -207,7 +207,7 @@ int main()
         -0.500f, +0.500f, +0.500f,  0.000f,  1.000f,  1.000f,  0.0f, 0.0f,
         +0.500f, +0.500f, -0.500f,  1.000f,  1.000f,  0.000f,  1.0f, 1.0f,
         -0.500f, +0.500f, -0.500f,  0.000f,  1.000f,  0.000f,  0.0f, 1.0f,
-    
+
         // bottom
         -0.500f, -0.500f, -0.500f,  0.000f,  0.000f,  0.000f,  0.0f, 0.0f,
         +0.500f, -0.500f, -0.500f,  1.000f,  0.000f,  0.000f,  1.0f, 0.0f,
@@ -217,11 +217,9 @@ int main()
         -0.500f, -0.500f, +0.500f,  0.000f,  0.000f,  1.000f,  0.0f, 1.0f,
     };
 
-
-
     // VBO / VAO 
     GLuint vaoTetra = 0, vboTetra = 0;
-    GLuint vaoCube  = 0, vboCube  = 0;
+    GLuint vaoCube = 0, vboCube = 0;
 
     GLsizei stride = 8 * sizeof(float);
 
@@ -261,8 +259,11 @@ int main()
 
     glBindVertexArray(0);
 
-    // ---- ТЕКСТУРА ДЛЯ КУБА ----
-    GLuint textureId = 0;
+    // ---- ТЕКСТУРЫ ДЛЯ КУБА ----
+    GLuint textureId1 = 0;
+    GLuint textureId2 = 0;
+
+    // Первая текстура
     {
         sf::Image img;
         if (!img.loadFromFile("texture.png"))
@@ -271,8 +272,41 @@ int main()
         }
         else
         {
-            glGenTextures(1, &textureId);
-            glBindTexture(GL_TEXTURE_2D, textureId);
+            glGenTextures(1, &textureId1);
+            glBindTexture(GL_TEXTURE_2D, textureId1);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+            glTexImage2D(
+                GL_TEXTURE_2D,
+                0,
+                GL_RGBA,
+                static_cast<GLsizei>(img.getSize().x),
+                static_cast<GLsizei>(img.getSize().y),
+                0,
+                GL_RGBA,
+                GL_UNSIGNED_BYTE,
+                img.getPixelsPtr()
+            );
+            glGenerateMipmap(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
+    }
+
+    // Вторая текстура
+    {
+        sf::Image img;
+        if (!img.loadFromFile("texture2.png"))
+        {
+            std::cerr << "Failed to load texture2.png\n";
+        }
+        else
+        {
+            glGenTextures(1, &textureId2);
+            glBindTexture(GL_TEXTURE_2D, textureId2);
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -297,14 +331,18 @@ int main()
 
     // Uniforms
     glUseProgram(program);
-    GLint uOffsetLoc     = glGetUniformLocation(program, "uOffset");
-    GLint uColorMixLoc   = glGetUniformLocation(program, "uColorMix");
+    GLint uOffsetLoc = glGetUniformLocation(program, "uOffset");
+    GLint uColorMixLoc = glGetUniformLocation(program, "uColorMix");
     GLint uUseTextureLoc = glGetUniformLocation(program, "uUseTexture");
-    GLint uTextureLoc    = glGetUniformLocation(program, "uTexture");
+    GLint uTextureLoc = glGetUniformLocation(program, "uTexture");
+    GLint uTexture2Loc = glGetUniformLocation(program, "uTexture2");
+    GLint uTextureMixLoc = glGetUniformLocation(program, "uTextureMix");
     GLint uWorldRotLoc = glGetUniformLocation(program, "uWorldRot");
 
     if (uTextureLoc != -1)
-        glUniform1i(uTextureLoc, 0); 
+        glUniform1i(uTextureLoc, 0);
+    if (uTexture2Loc != -1)
+        glUniform1i(uTexture2Loc, 1);
 
     glUseProgram(0);
 
@@ -314,11 +352,12 @@ int main()
 
     // Control params
     float tetraOffset[3] = { 0.0f, 0.0f, 0.0f };
-    float cubeOffset[3]  = { 0.0f, 0.0f, 0.0f };
+    float cubeOffset[3] = { 0.0f, 0.0f, 0.0f };
 
-    float colorMix = 0.5f;      
+    float colorMix = 0.5f;
+    float textureMix = 0.5f;    // Смешивание двух текстур
     const float moveStep = 0.1f;
-    const float rotStep  = 5.0f * 3.14159265f / 180.0f;
+    const float rotStep = 5.0f * 3.14159265f / 180.0f;
     float tetraRotation[9] = {
         1,0,0,
         0,1,0,
@@ -329,19 +368,22 @@ int main()
         0,1,0,
         0,0,1
     };
-    const float mixStep  = 0.05f;
+    const float mixStep = 0.05f;
 
-    
+
     bool isCubeActive = false;
+    int cubeMode = 0; // 0 - одна текстура с цветом, 1 - две смешанные текстуры
 
     std::cout << "Controls:\n"
-          << "  SPACE - switch between tetrahedron and cube\n"
-          << "  W/A/S/D, Q/E - move the active object along the X/Y/Z axes\n"
-          << "  I/K - rotate around the X axis\n"
-          << "  J/L - rotate around the Y axis\n"
-          << "  U/O - rotate around the Z axis\n"
-          << "  UP/DOWN - change the contribution of vertex color to the texture (for the cube)\n"
-          << "  ESC - exit\n";
+        << "  SPACE - switch between tetrahedron and cube\n"
+        << "  TAB - switch cube mode (single texture / mixed textures)\n"
+        << "  W/A/S/D, Q/E - move the active object along the X/Y/Z axes\n"
+        << "  I/K - rotate around the X axis\n"
+        << "  J/L - rotate around the Y axis\n"
+        << "  U/O - rotate around the Z axis\n"
+        << "  UP/DOWN - change the contribution of vertex color to the texture (for single texture mode)\n"
+        << "  LEFT/RIGHT - change the mix between two textures (for mixed textures mode)\n"
+        << "  ESC - exit\n";
 
     // Cycle
     while (window.isOpen())
@@ -353,7 +395,7 @@ int main()
             {
                 window.close();
             }
-            
+
             else if (const auto* resized = event->getIf<sf::Event::Resized>())
             {
                 glViewport(
@@ -363,11 +405,11 @@ int main()
                     static_cast<GLsizei>(resized->size.y)
                 );
             }
-            
+
             else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
             {
                 using Key = sf::Keyboard::Key;
-                
+
                 float* activeOffset = isCubeActive ? cubeOffset : tetraOffset;
                 float* activeRotation = isCubeActive ? cubeRotation : tetraRotation;
 
@@ -381,7 +423,15 @@ int main()
                     isCubeActive = !isCubeActive;
                     break;
 
-                // Position
+                case Key::Tab:
+                    if (isCubeActive)
+                    {
+                        cubeMode = (cubeMode + 1) % 2;
+                        std::cout << "Cube mode: " << (cubeMode == 0 ? "Single texture" : "Mixed textures") << "\n";
+                    }
+                    break;
+
+                    // Position
                 case Key::A: // -X
                     activeOffset[0] -= moveStep;
                     break;
@@ -400,13 +450,13 @@ int main()
                 case Key::E: // +Z
                     activeOffset[2] += moveStep;
                     break;
-                    
-                // Rotation
+
+                    // Rotation
                 case Key::I: // +X
                 {
                     float r[9], tmp[9];
                     makeRotX(+rotStep, r);
-                    mulMat3(r, activeRotation, tmp);      
+                    mulMat3(r, activeRotation, tmp);
                     for (int i = 0; i < 9; ++i)
                         activeRotation[i] = tmp[i];
                     break;
@@ -415,7 +465,7 @@ int main()
                 {
                     float r[9], tmp[9];
                     makeRotX(-rotStep, r);
-                    mulMat3(r, activeRotation, tmp);   
+                    mulMat3(r, activeRotation, tmp);
                     for (int i = 0; i < 9; ++i)
                         activeRotation[i] = tmp[i];
                     break;
@@ -457,16 +507,40 @@ int main()
                     break;
                 }
 
-                // Color mix
+                // Color mix (для режима одной текстуры)
                 case Key::Up:
-                    colorMix += mixStep;
-                    if (colorMix > 1.0f) colorMix = 1.0f;
-                    std::cout << "colorMix = " << colorMix << "\n";
+                    if (isCubeActive && cubeMode == 0)
+                    {
+                        colorMix += mixStep;
+                        if (colorMix > 1.0f) colorMix = 1.0f;
+                        std::cout << "colorMix = " << colorMix << "\n";
+                    }
                     break;
                 case Key::Down:
-                    colorMix -= mixStep;
-                    if (colorMix < 0.0f) colorMix = 0.0f;
-                    std::cout << "colorMix = " << colorMix << "\n";
+                    if (isCubeActive && cubeMode == 0)
+                    {
+                        colorMix -= mixStep;
+                        if (colorMix < 0.0f) colorMix = 0.0f;
+                        std::cout << "colorMix = " << colorMix << "\n";
+                    }
+                    break;
+
+                    // Texture mix (для режима двух текстур)
+                case Key::Right:
+                    if (isCubeActive && cubeMode == 1)
+                    {
+                        textureMix += mixStep;
+                        if (textureMix > 1.0f) textureMix = 1.0f;
+                        std::cout << "textureMix = " << textureMix << "\n";
+                    }
+                    break;
+                case Key::Left:
+                    if (isCubeActive && cubeMode == 1)
+                    {
+                        textureMix -= mixStep;
+                        if (textureMix < 0.0f) textureMix = 0.0f;
+                        std::cout << "textureMix = " << textureMix << "\n";
+                    }
                     break;
 
                 default:
@@ -500,29 +574,62 @@ int main()
 
             if (uOffsetLoc != -1)
                 glUniform3fv(uOffsetLoc, 1, cubeOffset);
-            if (uColorMixLoc != -1)
-                glUniform1f(uColorMixLoc, colorMix);
             if (uWorldRotLoc != -1)
                 glUniformMatrix3fv(uWorldRotLoc, 1, GL_FALSE, cubeRotation);
 
-            if (textureId != 0)
+            if (cubeMode == 0)
             {
-                glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D, textureId);
-                if (uUseTextureLoc != -1)
-                    glUniform1i(uUseTextureLoc, 1);
+                // Режим одной текстуры с цветом
+                if (uColorMixLoc != -1)
+                    glUniform1f(uColorMixLoc, colorMix);
+                if (uTextureMixLoc != -1)
+                    glUniform1f(uTextureMixLoc, 0.0f); // Не используется в этом режиме
+
+                if (textureId1 != 0)
+                {
+                    glActiveTexture(GL_TEXTURE0);
+                    glBindTexture(GL_TEXTURE_2D, textureId1);
+                    if (uUseTextureLoc != -1)
+                        glUniform1i(uUseTextureLoc, 1);
+                }
+                else
+                {
+                    if (uUseTextureLoc != -1)
+                        glUniform1i(uUseTextureLoc, 0);
+                }
             }
             else
             {
-                if (uUseTextureLoc != -1)
-                    glUniform1i(uUseTextureLoc, 0);
+                // Режим двух смешанных текстур
+                if (uColorMixLoc != -1)
+                    glUniform1f(uColorMixLoc, 0.0f); // Цвет не используется
+                if (uTextureMixLoc != -1)
+                    glUniform1f(uTextureMixLoc, textureMix);
+
+                if (textureId1 != 0 && textureId2 != 0)
+                {
+                    glActiveTexture(GL_TEXTURE0);
+                    glBindTexture(GL_TEXTURE_2D, textureId1);
+                    glActiveTexture(GL_TEXTURE1);
+                    glBindTexture(GL_TEXTURE_2D, textureId2);
+                    if (uUseTextureLoc != -1)
+                        glUniform1i(uUseTextureLoc, 2); // Режим двух текстур
+                }
+                else
+                {
+                    if (uUseTextureLoc != -1)
+                        glUniform1i(uUseTextureLoc, 0);
+                }
             }
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
 
+            // Отвязываем текстуры
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glActiveTexture(GL_TEXTURE1);
             glBindTexture(GL_TEXTURE_2D, 0);
         }
-
 
         glBindVertexArray(0);
         glUseProgram(0);
@@ -545,8 +652,10 @@ int main()
     glDeleteBuffers(1, &vboCube);
     glDeleteVertexArrays(1, &vaoCube);
 
-    if (textureId != 0)
-        glDeleteTextures(1, &textureId);
+    if (textureId1 != 0)
+        glDeleteTextures(1, &textureId1);
+    if (textureId2 != 0)
+        glDeleteTextures(1, &textureId2);
 
     return 0;
 }

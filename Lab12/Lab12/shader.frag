@@ -3,27 +3,37 @@
 in vec3 vColor;
 in vec2 vTexCoord;
 
-out vec4 FragColor;
+out vec4 fragColor;
 
-// Текстура куба
-uniform sampler2D uTexture;
-
-// 0.0 — только текстура, 1.0 — только цвет вершин
 uniform float uColorMix;
-
-// 0 — игнорируем текстуру (тетраэдр), 1 — используем (куб)
+uniform float uTextureMix;
+uniform sampler2D uTexture;
+uniform sampler2D uTexture2;
 uniform int uUseTexture;
 
 void main()
 {
-    vec3 color = vColor;
-
-    if (uUseTexture == 1)
+    if (uUseTexture == 0) 
     {
-        vec3 tex = texture(uTexture, vTexCoord).rgb;
-        // смешиваем текстуру и цвет вершин
-        color = mix(tex, vColor, uColorMix);
+        // Без текстуры - только цвет вершин
+        fragColor = vec4(vColor, 1.0);
     }
-
-    FragColor = vec4(color, 1.0);
+    else if (uUseTexture == 1) 
+    {
+        // Одна текстура с смешиванием цвета
+        vec4 texColor = texture(uTexture, vTexCoord);
+        vec4 vertexColor = vec4(vColor, 1.0);
+        fragColor = mix(texColor, vertexColor, uColorMix);
+    }
+    else if (uUseTexture == 2) 
+    {
+        // Две смешанные текстуры
+        vec4 tex1Color = texture(uTexture, vTexCoord);
+        vec4 tex2Color = texture(uTexture2, vTexCoord);
+        fragColor = mix(tex1Color, tex2Color, uTextureMix);
+    }
+    else 
+    {
+        fragColor = vec4(vColor, 1.0);
+    }
 }
