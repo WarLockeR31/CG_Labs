@@ -103,9 +103,7 @@ int main()
 
     sf::RenderWindow window(
         sf::VideoMode({ 800u, 600u }),
-        "Lab 12 - Tetrahedron, Textured Cube, Gradient Circle",
-        sf::Style::Default,
-        sf::ContextSettings(settings)
+        "Lab 12 - Tetrahedron, Textured Cube, Gradient Circle"
     );
     window.setVerticalSyncEnabled(true);
 
