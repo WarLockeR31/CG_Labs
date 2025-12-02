@@ -327,7 +327,6 @@ int main()
         }
     }
 
-    // Вторая текстура
     {
         sf::Image img;
         if (!img.loadFromFile("texture2.png"))
@@ -388,7 +387,7 @@ int main()
     float cubeOffset[3] = { 0.0f, 0.0f, 0.0f };
 
     float colorMix = 0.5f;
-    float textureMix = 0.5f;    // Смешивание двух текстур
+    float textureMix = 0.5f;   
     const float moveStep = 0.1f;
     const float rotStep = 5.0f * 3.14159265f / 180.0f;
     float tetraRotation[9] = {
@@ -403,12 +402,11 @@ int main()
     };
     const float mixStep = 0.05f;
 
-    // circle params
     float circleScale[2] = { 1.0f, 1.0f };
 
-    int activeObject = 0; // 0 - tetra, 1 - cube, 2 - circle
+    int activeObject = 0; 
     bool isCubeActive = false;
-    int cubeMode = 0; // 0 - одна текстура с цветом, 1 - две смешанные текстуры
+    int cubeMode = 0; 
 
     std::cout << "Controls:\n"
         << "  1 - tetrahedron\n"
