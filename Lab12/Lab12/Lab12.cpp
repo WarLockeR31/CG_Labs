@@ -103,10 +103,9 @@ int main()
 
     sf::RenderWindow window(
         sf::VideoMode({ 800u, 600u }),
-        "Lab 12 - Tetrahedron & Textured Cube",
+        "Lab 12 - Tetrahedron, Textured Cube, Gradient Circle",
         sf::Style::Default,
-        sf::State::Windowed,
-        settings
+        sf::ContextSettings(settings)
     );
     window.setVerticalSyncEnabled(true);
 
@@ -259,6 +258,40 @@ int main()
 
     glBindVertexArray(0);
 
+    // ---- CIRCLE ----
+    std::vector<float> circleVertices;
+    const int N = 256;
+    circleVertices.reserve((N + 2) * 3);
+
+    // center
+    circleVertices.push_back(0.0f);
+    circleVertices.push_back(0.0f);
+    circleVertices.push_back(0.0f);
+
+    // circle points as vec3 (z=0)
+    for (int i = 0; i <= N; ++i)
+    {
+        float a = float(i) / float(N) * 2.0f * 3.14159265358979f;
+        circleVertices.push_back(std::cos(a));
+        circleVertices.push_back(std::sin(a));
+        circleVertices.push_back(0.0f);
+    }
+
+    GLuint vaoCircle = 0, vboCircle = 0;
+    glGenVertexArrays(1, &vaoCircle);
+    glGenBuffers(1, &vboCircle);
+
+    glBindVertexArray(vaoCircle);
+    glBindBuffer(GL_ARRAY_BUFFER, vboCircle);
+    glBufferData(GL_ARRAY_BUFFER, circleVertices.size() * sizeof(float), circleVertices.data(), GL_STATIC_DRAW);
+
+    // position attribute only (location = 0)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // don't enable attrib 1 and 2 here (we'll set them as constants during draw)
+    glBindVertexArray(0);
+
     // ---- ТЕКСТУРЫ ДЛЯ КУБА ----
     GLuint textureId1 = 0;
     GLuint textureId2 = 0;
@@ -338,6 +371,8 @@ int main()
     GLint uTexture2Loc = glGetUniformLocation(program, "uTexture2");
     GLint uTextureMixLoc = glGetUniformLocation(program, "uTextureMix");
     GLint uWorldRotLoc = glGetUniformLocation(program, "uWorldRot");
+    GLint uCircleScaleLoc = glGetUniformLocation(program, "uCircleScale");
+    GLint uRenderModeLoc = glGetUniformLocation(program, "uRenderMode"); // 0-default,1-circle
 
     if (uTextureLoc != -1)
         glUniform1i(uTextureLoc, 0);
@@ -370,12 +405,17 @@ int main()
     };
     const float mixStep = 0.05f;
 
+    // circle params
+    float circleScale[2] = { 1.0f, 1.0f };
 
+    int activeObject = 0; // 0 - tetra, 1 - cube, 2 - circle
     bool isCubeActive = false;
     int cubeMode = 0; // 0 - одна текстура с цветом, 1 - две смешанные текстуры
 
     std::cout << "Controls:\n"
-        << "  SPACE - switch between tetrahedron and cube\n"
+        << "  1 - tetrahedron\n"
+        << "  2 - cube\n"
+        << "  3 - circle (gradient)\n"
         << "  TAB - switch cube mode (single texture / mixed textures)\n"
         << "  W/A/S/D, Q/E - move the active object along the X/Y/Z axes\n"
         << "  I/K - rotate around the X axis\n"
@@ -383,6 +423,8 @@ int main()
         << "  U/O - rotate around the Z axis\n"
         << "  UP/DOWN - change the contribution of vertex color to the texture (for single texture mode)\n"
         << "  LEFT/RIGHT - change the mix between two textures (for mixed textures mode)\n"
+        << "  Z/X - scale circle on X axis (+/-)\n"
+        << "  C/V - scale circle on Y axis (+/-)\n"
         << "  ESC - exit\n";
 
     // Cycle
@@ -410,8 +452,8 @@ int main()
             {
                 using Key = sf::Keyboard::Key;
 
-                float* activeOffset = isCubeActive ? cubeOffset : tetraOffset;
-                float* activeRotation = isCubeActive ? cubeRotation : tetraRotation;
+                float* activeOffset = (activeObject == 1) ? cubeOffset : tetraOffset;
+                float* activeRotation = (activeObject == 1) ? cubeRotation : tetraRotation;
 
                 switch (keyPressed->code)
                 {
@@ -419,12 +461,21 @@ int main()
                     window.close();
                     break;
 
-                case Key::Space:
-                    isCubeActive = !isCubeActive;
+                case Key::Num1:
+                    activeObject = 0;
+                    std::cout << "Active: Tetra\n";
+                    break;
+                case Key::Num2:
+                    activeObject = 1;
+                    std::cout << "Active: Cube\n";
+                    break;
+                case Key::Num3:
+                    activeObject = 2;
+                    std::cout << "Active: Circle\n";
                     break;
 
                 case Key::Tab:
-                    if (isCubeActive)
+                    if (activeObject == 1)
                     {
                         cubeMode = (cubeMode + 1) % 2;
                         std::cout << "Cube mode: " << (cubeMode == 0 ? "Single texture" : "Mixed textures") << "\n";
@@ -433,83 +484,101 @@ int main()
 
                     // Position
                 case Key::A: // -X
-                    activeOffset[0] -= moveStep;
+                    if (activeObject != 2) activeOffset[0] -= moveStep;
                     break;
                 case Key::D: // +X
-                    activeOffset[0] += moveStep;
+                    if (activeObject != 2) activeOffset[0] += moveStep;
                     break;
                 case Key::W: // +Y
-                    activeOffset[1] += moveStep;
+                    if (activeObject != 2) activeOffset[1] += moveStep;
                     break;
                 case Key::S: // -Y
-                    activeOffset[1] -= moveStep;
+                    if (activeObject != 2) activeOffset[1] -= moveStep;
                     break;
                 case Key::Q: // -Z
-                    activeOffset[2] -= moveStep;
+                    if (activeObject != 2) activeOffset[2] -= moveStep;
                     break;
                 case Key::E: // +Z
-                    activeOffset[2] += moveStep;
+                    if (activeObject != 2) activeOffset[2] += moveStep;
                     break;
 
                     // Rotation
                 case Key::I: // +X
                 {
-                    float r[9], tmp[9];
-                    makeRotX(+rotStep, r);
-                    mulMat3(r, activeRotation, tmp);
-                    for (int i = 0; i < 9; ++i)
-                        activeRotation[i] = tmp[i];
+                    if (activeObject != 2)
+                    {
+                        float r[9], tmp[9];
+                        makeRotX(+rotStep, r);
+                        mulMat3(r, activeRotation, tmp);
+                        for (int i = 0; i < 9; ++i)
+                            activeRotation[i] = tmp[i];
+                    }
                     break;
                 }
                 case Key::K: // -X
                 {
-                    float r[9], tmp[9];
-                    makeRotX(-rotStep, r);
-                    mulMat3(r, activeRotation, tmp);
-                    for (int i = 0; i < 9; ++i)
-                        activeRotation[i] = tmp[i];
+                    if (activeObject != 2)
+                    {
+                        float r[9], tmp[9];
+                        makeRotX(-rotStep, r);
+                        mulMat3(r, activeRotation, tmp);
+                        for (int i = 0; i < 9; ++i)
+                            activeRotation[i] = tmp[i];
+                    }
                     break;
                 }
                 case Key::J: // +Y
                 {
-                    float r[9], tmp[9];
-                    makeRotY(+rotStep, r);
-                    mulMat3(r, activeRotation, tmp);
-                    for (int i = 0; i < 9; ++i)
-                        activeRotation[i] = tmp[i];
+                    if (activeObject != 2)
+                    {
+                        float r[9], tmp[9];
+                        makeRotY(+rotStep, r);
+                        mulMat3(r, activeRotation, tmp);
+                        for (int i = 0; i < 9; ++i)
+                            activeRotation[i] = tmp[i];
+                    }
                     break;
                 }
                 case Key::L: // -Y
                 {
-                    float r[9], tmp[9];
-                    makeRotY(-rotStep, r);
-                    mulMat3(r, activeRotation, tmp);
-                    for (int i = 0; i < 9; ++i)
-                        activeRotation[i] = tmp[i];
+                    if (activeObject != 2)
+                    {
+                        float r[9], tmp[9];
+                        makeRotY(-rotStep, r);
+                        mulMat3(r, activeRotation, tmp);
+                        for (int i = 0; i < 9; ++i)
+                            activeRotation[i] = tmp[i];
+                    }
                     break;
                 }
                 case Key::U: // +Z
                 {
-                    float r[9], tmp[9];
-                    makeRotZ(+rotStep, r);
-                    mulMat3(r, activeRotation, tmp);
-                    for (int i = 0; i < 9; ++i)
-                        activeRotation[i] = tmp[i];
+                    if (activeObject != 2)
+                    {
+                        float r[9], tmp[9];
+                        makeRotZ(+rotStep, r);
+                        mulMat3(r, activeRotation, tmp);
+                        for (int i = 0; i < 9; ++i)
+                            activeRotation[i] = tmp[i];
+                    }
                     break;
                 }
                 case Key::O: // -Z
                 {
-                    float r[9], tmp[9];
-                    makeRotZ(-rotStep, r);
-                    mulMat3(r, activeRotation, tmp);
-                    for (int i = 0; i < 9; ++i)
-                        activeRotation[i] = tmp[i];
+                    if (activeObject != 2)
+                    {
+                        float r[9], tmp[9];
+                        makeRotZ(-rotStep, r);
+                        mulMat3(r, activeRotation, tmp);
+                        for (int i = 0; i < 9; ++i)
+                            activeRotation[i] = tmp[i];
+                    }
                     break;
                 }
 
                 // Color mix (для режима одной текстуры)
                 case Key::Up:
-                    if (isCubeActive && cubeMode == 0)
+                    if (activeObject == 1 && cubeMode == 0)
                     {
                         colorMix += mixStep;
                         if (colorMix > 1.0f) colorMix = 1.0f;
@@ -517,7 +586,7 @@ int main()
                     }
                     break;
                 case Key::Down:
-                    if (isCubeActive && cubeMode == 0)
+                    if (activeObject == 1 && cubeMode == 0)
                     {
                         colorMix -= mixStep;
                         if (colorMix < 0.0f) colorMix = 0.0f;
@@ -527,7 +596,7 @@ int main()
 
                     // Texture mix (для режима двух текстур)
                 case Key::Right:
-                    if (isCubeActive && cubeMode == 1)
+                    if (activeObject == 1 && cubeMode == 1)
                     {
                         textureMix += mixStep;
                         if (textureMix > 1.0f) textureMix = 1.0f;
@@ -535,12 +604,26 @@ int main()
                     }
                     break;
                 case Key::Left:
-                    if (isCubeActive && cubeMode == 1)
+                    if (activeObject == 1 && cubeMode == 1)
                     {
                         textureMix -= mixStep;
                         if (textureMix < 0.0f) textureMix = 0.0f;
                         std::cout << "textureMix = " << textureMix << "\n";
                     }
+                    break;
+
+                    // Circle scale controls
+                case Key::Z:
+                    if (activeObject == 2) { circleScale[0] += 0.1f; std::cout << "circleScale.x = " << circleScale[0] << "\n"; }
+                    break;
+                case Key::X:
+                    if (activeObject == 2) { circleScale[0] -= 0.1f; if (circleScale[0] < 0.01f) circleScale[0] = 0.01f; std::cout << "circleScale.x = " << circleScale[0] << "\n"; }
+                    break;
+                case Key::C:
+                    if (activeObject == 2) { circleScale[1] += 0.1f; std::cout << "circleScale.y = " << circleScale[1] << "\n"; }
+                    break;
+                case Key::V:
+                    if (activeObject == 2) { circleScale[1] -= 0.1f; if (circleScale[1] < 0.01f) circleScale[1] = 0.01f; std::cout << "circleScale.y = " << circleScale[1] << "\n"; }
                     break;
 
                 default:
@@ -553,82 +636,135 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(program);
 
-        if (!isCubeActive)
+        // set common uniforms
+        if (uRenderModeLoc != -1)
+            glUniform1i(uRenderModeLoc, (activeObject == 2 ? 1 : 0));
+
+        if (!(activeObject == 2))
         {
-            glBindVertexArray(vaoTetra);
+            // Tetra or Cube
+            if (activeObject == 0)
+            {
+                glBindVertexArray(vaoTetra);
 
-            if (uOffsetLoc != -1)
-                glUniform3fv(uOffsetLoc, 1, tetraOffset);
-            if (uUseTextureLoc != -1)
-                glUniform1i(uUseTextureLoc, 0);
-            if (uColorMixLoc != -1)
-                glUniform1f(uColorMixLoc, 0.0f);
-            if (uWorldRotLoc != -1)
-                glUniformMatrix3fv(uWorldRotLoc, 1, GL_FALSE, tetraRotation);
+                if (uOffsetLoc != -1)
+                    glUniform3fv(uOffsetLoc, 1, tetraOffset);
+                if (uUseTextureLoc != -1)
+                    glUniform1i(uUseTextureLoc, 0);
+                if (uColorMixLoc != -1)
+                    glUniform1f(uColorMixLoc, 0.0f);
+                if (uWorldRotLoc != -1)
+                    glUniformMatrix3fv(uWorldRotLoc, 1, GL_FALSE, tetraRotation);
 
-            glDrawArrays(GL_TRIANGLES, 0, 12);
+                // ensure vertex attribs 1,2 are enabled (they are in VAO)
+                glEnableVertexAttribArray(1);
+                glEnableVertexAttribArray(2);
+
+                glDrawArrays(GL_TRIANGLES, 0, 12);
+            }
+            else // cube
+            {
+                glBindVertexArray(vaoCube);
+
+                if (uOffsetLoc != -1)
+                    glUniform3fv(uOffsetLoc, 1, cubeOffset);
+                if (uWorldRotLoc != -1)
+                    glUniformMatrix3fv(uWorldRotLoc, 1, GL_FALSE, cubeRotation);
+
+                // ensure vertex attribs 1,2 are enabled (they are in VAO)
+                glEnableVertexAttribArray(1);
+                glEnableVertexAttribArray(2);
+
+                if (cubeMode == 0)
+                {
+                    // Режим одной текстуры с цветом
+                    if (uColorMixLoc != -1)
+                        glUniform1f(uColorMixLoc, colorMix);
+                    if (uTextureMixLoc != -1)
+                        glUniform1f(uTextureMixLoc, 0.0f); // Не используется в этом режиме
+
+                    if (textureId1 != 0)
+                    {
+                        glActiveTexture(GL_TEXTURE0);
+                        glBindTexture(GL_TEXTURE_2D, textureId1);
+                        if (uUseTextureLoc != -1)
+                            glUniform1i(uUseTextureLoc, 1);
+                    }
+                    else
+                    {
+                        if (uUseTextureLoc != -1)
+                            glUniform1i(uUseTextureLoc, 0);
+                    }
+                }
+                else
+                {
+                    // Режим двух смешанных текстур
+                    if (uColorMixLoc != -1)
+                        glUniform1f(uColorMixLoc, 0.0f); // Цвет не используется
+                    if (uTextureMixLoc != -1)
+                        glUniform1f(uTextureMixLoc, textureMix);
+
+                    if (textureId1 != 0 && textureId2 != 0)
+                    {
+                        glActiveTexture(GL_TEXTURE0);
+                        glBindTexture(GL_TEXTURE_2D, textureId1);
+                        glActiveTexture(GL_TEXTURE1);
+                        glBindTexture(GL_TEXTURE_2D, textureId2);
+                        if (uUseTextureLoc != -1)
+                            glUniform1i(uUseTextureLoc, 2); // Режим двух текстур
+                    }
+                    else
+                    {
+                        if (uUseTextureLoc != -1)
+                            glUniform1i(uUseTextureLoc, 0);
+                    }
+                }
+
+                glDrawArrays(GL_TRIANGLES, 0, 36);
+
+                // Отвязываем текстуры
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, 0);
+                glActiveTexture(GL_TEXTURE1);
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
         }
         else
         {
-            glBindVertexArray(vaoCube);
+            // Draw circle
+            glBindVertexArray(vaoCircle);
+
+            // For circle: disable color/texcoord arrays and set constants
+            glDisableVertexAttribArray(1); // color
+            glDisableVertexAttribArray(2); // texcoord
+
+            // set constant attribute values used by shader
+            glVertexAttrib3f(1, 1.0f, 1.0f, 1.0f); // vColor fallback
+            glVertexAttrib2f(2, 0.5f, 0.5f); // vTexCoord fallback base (will be overwritten in vertex shader using pos and uCircleScale)
 
             if (uOffsetLoc != -1)
-                glUniform3fv(uOffsetLoc, 1, cubeOffset);
+            {
+                float zero[3] = { 0.0f,0.0f,0.0f };
+                glUniform3fv(uOffsetLoc, 1, zero);
+            }
             if (uWorldRotLoc != -1)
-                glUniformMatrix3fv(uWorldRotLoc, 1, GL_FALSE, cubeRotation);
-
-            if (cubeMode == 0)
             {
-                // Режим одной текстуры с цветом
-                if (uColorMixLoc != -1)
-                    glUniform1f(uColorMixLoc, colorMix);
-                if (uTextureMixLoc != -1)
-                    glUniform1f(uTextureMixLoc, 0.0f); // Не используется в этом режиме
-
-                if (textureId1 != 0)
-                {
-                    glActiveTexture(GL_TEXTURE0);
-                    glBindTexture(GL_TEXTURE_2D, textureId1);
-                    if (uUseTextureLoc != -1)
-                        glUniform1i(uUseTextureLoc, 1);
-                }
-                else
-                {
-                    if (uUseTextureLoc != -1)
-                        glUniform1i(uUseTextureLoc, 0);
-                }
+                float I[9] = { 1,0,0, 0,1,0, 0,0,1 };
+                glUniformMatrix3fv(uWorldRotLoc, 1, GL_FALSE, I);
             }
-            else
-            {
-                // Режим двух смешанных текстур
-                if (uColorMixLoc != -1)
-                    glUniform1f(uColorMixLoc, 0.0f); // Цвет не используется
-                if (uTextureMixLoc != -1)
-                    glUniform1f(uTextureMixLoc, textureMix);
+            if (uUseTextureLoc != -1)
+                glUniform1i(uUseTextureLoc, 0);
 
-                if (textureId1 != 0 && textureId2 != 0)
-                {
-                    glActiveTexture(GL_TEXTURE0);
-                    glBindTexture(GL_TEXTURE_2D, textureId1);
-                    glActiveTexture(GL_TEXTURE1);
-                    glBindTexture(GL_TEXTURE_2D, textureId2);
-                    if (uUseTextureLoc != -1)
-                        glUniform1i(uUseTextureLoc, 2); // Режим двух текстур
-                }
-                else
-                {
-                    if (uUseTextureLoc != -1)
-                        glUniform1i(uUseTextureLoc, 0);
-                }
-            }
+            if (uCircleScaleLoc != -1)
+                glUniform2fv(uCircleScaleLoc, 1, circleScale);
 
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+            // draw triangle fan: center + N+1 vertices
+            glDrawArrays(GL_TRIANGLE_FAN, 0, N + 2);
 
-            // Отвязываем текстуры
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, 0);
+            // Re-enable attributes for other VAOs (so their VAOs can use them)
+            // (They will be re-enabled when binding their VAOs but safe to enable)
+            //glEnableVertexAttribArray(1);
+            //glEnableVertexAttribArray(2);
         }
 
         glBindVertexArray(0);
@@ -651,6 +787,9 @@ int main()
 
     glDeleteBuffers(1, &vboCube);
     glDeleteVertexArrays(1, &vaoCube);
+
+    glDeleteBuffers(1, &vboCircle);
+    glDeleteVertexArrays(1, &vaoCircle);
 
     if (textureId1 != 0)
         glDeleteTextures(1, &textureId1);
