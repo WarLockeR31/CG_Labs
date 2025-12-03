@@ -1,7 +1,6 @@
-﻿using System;
+﻿using MathPrimitives;
 using System.Globalization;
-using System.Text;
-using MathPrimitives;
+using Topology;   
 
 namespace Topology.IO
 {
@@ -9,213 +8,203 @@ namespace Topology.IO
     {
         private static readonly CultureInfo CI = CultureInfo.InvariantCulture;
 
-        // -------- Save --------
-
-        public static void Save(Polyhedron mesh, string path)
-        {
-            using var w = new StreamWriter(path, false, new UTF8Encoding(false));
-            Save(mesh, w);
-        }
-
-        public static void Save(Polyhedron mesh, Stream stream, bool leaveOpen = false)
-        {
-            using var w = new StreamWriter(stream, new UTF8Encoding(false), bufferSize: 1024, leaveOpen);
-            Save(mesh, w);
-        }
-
-        private static void Save(Polyhedron mesh, TextWriter w)
-        {
-            w.WriteLine("# OBJ generated for Polyhedron");
-            w.WriteLine($"# vertices: {mesh.Vertices.Count}, faces: {mesh.Faces.Count}");
-
-            // v lines
-            foreach (var v in mesh.Vertices)
-            {
-                w.Write("v ");
-                w.Write(v.X.ToString("R", CI)); w.Write(' ');
-                w.Write(v.Y.ToString("R", CI)); w.Write(' ');
-                w.WriteLine(v.Z.ToString("R", CI));
-            }
-
-            bool hasVN = mesh.VertexNormals is { Count: > 0 } && mesh.VertexNormals.Count == mesh.Vertices.Count;
-            if (hasVN)
-            {
-                foreach (var n in mesh.VertexNormals!)
-                {
-                    w.Write("vn ");
-                    w.Write(n.X.ToString("R", CI)); w.Write(' ');
-                    w.Write(n.Y.ToString("R", CI)); w.Write(' ');
-                    w.WriteLine(n.Z.ToString("R", CI));
-                }
-            }
-
-
-            // f lines
-            foreach (var f in mesh.Faces)
-            {
-                var idx = f.Indices;
-                if (idx is null || idx.Length < 3) continue;
-
-                w.Write("f");
-                for (int i = 0; i < idx.Length; i++)
-                {
-                    // 1-based indexing
-                    w.Write(' ');
-                    w.Write(idx[i] + 1);
-                }
-                w.WriteLine();
-            }
-
-            w.Flush();
-        }
-
-        // -------- Load --------
-
         public static Polyhedron Load(string path)
         {
-            using var r = new StreamReader(path, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
-            return Load(r);
-        }
-
-        public static Polyhedron Load(Stream stream, bool leaveOpen = false)
-        {
-            using var r = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen);
+            using var r = new StreamReader(path);
             return Load(r);
         }
 
         private static Polyhedron Load(TextReader r)
         {
             var vertices = new List<Vec3>();
-            var faces = new List<Face>();
+            var texcoords = new List<Vec2>();
+            var normals = new List<Vec3>();
 
-            var normals = new List<Vec3>();          
-            var vnRefs = new List<(int v, int n)>();
+            var facesExt = new List<FaceExt>();   // новый формат (v/vt/vn)
+            var facesOld = new List<Face>();      // старый формат (v)
 
             string? line;
-            while ((line = r.ReadLine()) is not null)
+            while ((line = r.ReadLine()) != null)
             {
-                // strip comments
                 int hash = line.IndexOf('#');
                 if (hash >= 0) line = line[..hash];
-
                 line = line.Trim();
                 if (line.Length == 0) continue;
 
-                // split by any whitespace
                 var parts = line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length == 0) continue;
 
                 switch (parts[0])
                 {
                     case "v":
-                        // v x y z
-                        if (parts.Length < 4)
-                            throw new FormatException($"Invalid vertex line: '{line}'");
+                        vertices.Add(new Vec3(
+                            double.Parse(parts[1], CI),
+                            double.Parse(parts[2], CI),
+                            double.Parse(parts[3], CI)
+                        ));
+                        break;
 
-                        double x = double.Parse(parts[1], CI);
-                        double y = double.Parse(parts[2], CI);
-                        double z = double.Parse(parts[3], CI);
-                        vertices.Add(new Vec3(x, y, z));
+                    case "vt":
+                        texcoords.Add(new Vec2(
+                            double.Parse(parts[1], CI),
+                            double.Parse(parts[2], CI)
+                        ));
                         break;
 
                     case "vn":
-                        if (parts.Length < 4) throw new FormatException($"Invalid normal line: '{line}'");
-                        double nx = double.Parse(parts[1], CI);
-                        double ny = double.Parse(parts[2], CI);
-                        double nz = double.Parse(parts[3], CI);
-                        var nrm = new Vec3(nx, ny, nz).Normalize();
-                        normals.Add(nrm);
+                        normals.Add(new Vec3(
+                            double.Parse(parts[1], CI),
+                            double.Parse(parts[2], CI),
+                            double.Parse(parts[3], CI)
+                        ).Normalize());
                         break;
 
                     case "f":
-                        // f a b c [d ...], tokens may be like "3", "3/2/1", "3//1", "-1"
-                        if (parts.Length < 4)
-                            throw new FormatException($"Invalid face line (need >=3 verts): '{line}'");
-
-                        var idx = new int[parts.Length - 1];
-                        for (int i = 1; i < parts.Length; i++)
                         {
-                            string tok = parts[i];
-                            idx[i - 1] = ParseObjVertexIndex(tok, vertices.Count);
-                            if ((uint)idx[i - 1] >= (uint)vertices.Count)
-                                throw new IndexOutOfRangeException(
-                                    $"Face vertex index resolves out of range: {parts[i]} -> {idx[i - 1]} (verts={vertices.Count})");
-                            
-                            int vn = ParseObjNormalIndexOrMinusOne(tok, normals.Count);
-                            if (vn >= 0) vnRefs.Add((idx[i - 1], vn));
-                        }
-                        faces.Add(new Face(idx));
-                        break;
+                            bool hasVT = false;
+                            bool hasVN = false;
 
-                    // Ignore everything else
-                    default:
-                        break;
+                            var triplets = new List<FaceVertexExt>();
+                            var oldFace = new List<int>();
+
+                            for (int i = 1; i < parts.Length; i++)
+                            {
+                                var comp = parts[i].Split('/');
+
+                                int v = ParseIndex(comp, 0, vertices.Count);
+                                int vt = ParseIndex(comp, 1, texcoords.Count, allowMissing: true);
+                                int vn = ParseIndex(comp, 2, normals.Count, allowMissing: true);
+
+                                if (vt >= 0) hasVT = true;
+                                if (vn >= 0) hasVN = true;
+
+                                triplets.Add(new FaceVertexExt(v, vt, vn));
+                                oldFace.Add(v);
+                            }
+
+                            if (hasVT || hasVN)
+                                facesExt.Add(new FaceExt(triplets.ToArray()));
+                            else
+                                facesOld.Add(new Face(oldFace.ToArray()));
+
+                            break;
+                        }
                 }
             }
 
-            var mesh = new Polyhedron(vertices, faces);
-
-            if (vnRefs.Count > 0 && normals.Count > 0)
+            var poly = new Polyhedron
             {
-                var sums = new Vec3[vertices.Count];
-                var cnt = new int[vertices.Count];
-                foreach (var (v, n) in vnRefs)
+                Vertices = vertices
+            };
+
+            if (texcoords.Count > 0)
+                poly.TextureCoords = texcoords;
+
+            if (normals.Count > 0)
+                poly.VertexNormals = normals;
+
+            if (facesExt.Count > 0)
+                poly.FacesExt = facesExt;
+
+            if (facesOld.Count > 0)
+                poly.Faces.AddRange(facesOld);
+
+            if (poly.VertexNormals == null)
+                poly.GenerateVertexNormals();
+
+
+            if (poly.FacesExt != null && poly.FacesExt.Count > 0)
+            {
+                poly.Faces.Clear();
+
+                foreach (var fe in poly.FacesExt)
                 {
-                    sums[v] += normals[n];
-                    cnt[v] += 1;
+                    var indices = fe.Vertices.Select(v => v.V).ToArray();
+                    poly.Faces.Add(new Face(indices));
                 }
-                mesh.VertexNormals = new List<Vec3>(vertices.Count);
-                for (int i = 0; i < vertices.Count; i++)
+            }
+
+
+            return poly;
+        }
+
+        private static int ParseIndex(string[] arr, int idx, int count, bool allowMissing = false)
+        {
+            if (idx >= arr.Length)
+                return allowMissing ? -1 : 0;
+
+            if (string.IsNullOrWhiteSpace(arr[idx]))
+                return allowMissing ? -1 : 0;
+
+            int val = int.Parse(arr[idx], CI);
+
+            if (val > 0) return val - 1;
+            if (val < 0) return count + val;
+
+            return 0;
+        }
+
+        public static void Save(Polyhedron poly, string path)
+        {
+            using var w = new StreamWriter(path);
+
+            w.WriteLine("# Exported by MeshRenderer");
+            w.WriteLine("# vertices: " + poly.Vertices.Count);
+
+            foreach (var v in poly.Vertices)
+                w.WriteLine($"v {v.X} {v.Y} {v.Z}");
+
+            if (poly.TextureCoords != null)
+            {
+                foreach (var t in poly.TextureCoords)
+                    w.WriteLine($"vt {t.X} {t.Y}");
+            }
+
+            if (poly.VertexNormals != null)
+            {
+                foreach (var n in poly.VertexNormals)
+                    w.WriteLine($"vn {n.X} {n.Y} {n.Z}");
+            }
+
+            if (poly.FacesExt != null && poly.FacesExt.Count > 0)
+            {
+                foreach (var f in poly.FacesExt)
                 {
-                    var nrm = cnt[i] > 0 ? (sums[i] / cnt[i]).Normalize() : Vec3.UnitY;
-                    mesh.VertexNormals.Add(nrm);
+                    w.Write("f");
+
+                    foreach (var fv in f.Vertices)
+                    {
+                        int v = fv.V + 1;   
+                        int vt = fv.VT >= 0 ? fv.VT + 1 : 0;
+                        int vn = fv.VN >= 0 ? fv.VN + 1 : 0;
+
+                        if (vt > 0 && vn > 0)
+                            w.Write($" {v}/{vt}/{vn}");
+                        else if (vt > 0)
+                            w.Write($" {v}/{vt}");
+                        else if (vn > 0)
+                            w.Write($" {v}//{vn}");
+                        else
+                            w.Write($" {v}");
+                    }
+
+                    w.WriteLine();
                 }
             }
             else
             {
-                mesh.GenerateVertexNormals(180.0);
+                foreach (var f in poly.Faces)
+                {
+                    w.Write("f");
+                    foreach (var vi in f.Indices)
+                    {
+                        int v = vi + 1;
+                        w.Write($" {v}");
+                    }
+                    w.WriteLine();
+                }
             }
-
-            return mesh;
         }
 
-        /// <summary>
-        /// Parses the vertex index from an OBJ face token:
-        ///   "v", "v/vt", "v//vn", or "v/vt/vn".
-        /// Supports negative indices (relative to end of vertex list).
-        /// Returns ZERO-based index.
-        /// </summary>
-        private static int ParseObjVertexIndex(string token, int vertexCount)
-        {
-            string vStr = token;
-            int slash = token.IndexOf('/');
-            if (slash >= 0)
-                vStr = token[..slash];
-
-            if (string.IsNullOrEmpty(vStr))
-                throw new FormatException($"Invalid face token: '{token}'");
-
-            int raw = int.Parse(vStr, CI);
-
-            if (raw > 0) return raw - 1;              
-            if (raw < 0) return vertexCount + raw;     
-            throw new FormatException("OBJ vertex index cannot be 0.");
-        }
-
-        private static int ParseObjNormalIndexOrMinusOne(string token, int normalCount)
-        {
-            int s1 = token.IndexOf('/');
-            if (s1 < 0) return -1;
-            int s2 = token.IndexOf('/', s1 + 1);
-            if (s2 < 0) return -1;
-
-            string vnStr = token[(s2 + 1)..];
-            if (string.IsNullOrEmpty(vnStr)) return -1;
-
-            int raw = int.Parse(vnStr, CI);
-            if (raw > 0) return raw - 1;
-            if (raw < 0) return normalCount + raw; // -1 → последний
-            throw new FormatException("OBJ normal index cannot be 0.");
-        }
     }
 }

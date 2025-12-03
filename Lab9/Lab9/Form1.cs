@@ -674,5 +674,29 @@ namespace Lab9
             btnToggleFiltering.Text = "Bilinear: " + (_renderer.UseBilinearFilter ? "On" : "Off");
             pb.Invalidate();
         }
+
+        private void btnLoadTexture_Click(object sender, EventArgs e)
+        {
+            using var ofd = new OpenFileDialog
+            {
+                Title = "Load texture",
+                Filter = "Images|*.png;*.jpg;*.jpeg;*.bmp"
+            };
+
+            if (ofd.ShowDialog() != DialogResult.OK)
+                return;
+
+            try
+            {
+                _renderer.CurrentTexture = Texture.FromFile(ofd.FileName);
+                _renderer.UseTexture = true;
+                MessageBox.Show("Texture loaded!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed: " + ex.Message);
+            }
+        }
+
     }
 }

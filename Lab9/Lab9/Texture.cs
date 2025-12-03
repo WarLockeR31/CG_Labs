@@ -154,5 +154,13 @@ namespace Renderer
 
             return Color.FromArgb(r, g, bl);
         }
+
+        public static Texture FromFile(string path)
+        {
+            using var bmp = new Bitmap(path);
+            return new Texture(bmp);
+        }
+
+
     }
 }

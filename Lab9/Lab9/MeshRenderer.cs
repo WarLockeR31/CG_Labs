@@ -843,65 +843,101 @@ public sealed class MeshRenderer
             g.DrawImage(bitmap, viewport.Left, viewport.Top);
         }
     }
-	#endregion
-	
-	#region Textured render
-	//---------------------------------------------------- TEXTURED RENDER ----------------------------------------------------
-    private void RenderTextured(Graphics g, Rectangle viewport, Vec3[] transformed,
-                             Vec2[] screen, Vec3[] ndc, Mat4 proj)
+    #endregion
+
+    #region Textured render
+    private void RenderTextured(Graphics g, Rectangle viewport,
+    Vec3[] transformed, Vec2[] screen, Vec3[] ndc, Mat4 proj)
     {
-        if (Model?.TextureCoords == null || Model.TextureCoords.Count != Model.Vertices.Count)
-        {
-            Model?.GenerateSimpleTextureCoords();
-        }
+        if (Model == null) return;
 
         int width = viewport.Width;
         int height = viewport.Height;
 
         ClearZBuffer(width, height);
-		
-		if (ShowGrid)
-		{
-			RenderGridXZ_ZBuffered(viewport, ViewTransform, proj);
-		}
 
-        foreach (var face in Model.Faces)
+        if (ShowGrid)
+            RenderGridXZ_ZBuffered(viewport, ViewTransform, proj);
+
+        bool usesExt = Model.FacesExt != null && Model.FacesExt.Count > 0;
+
+        if (!usesExt)
         {
-            if (CullBackFaces && !IsFaceFrontFacing(face, transformed, Projection))
-                continue;
+            if (Model.TextureCoords == null || Model.TextureCoords.Count != Model.Vertices.Count)
+                Model.GenerateSimpleTextureCoords();
+        }
 
-            var idx = face.Indices;
-            if (idx.Length < 3) continue;
-
-            for (int i = 1; i + 1 < idx.Length; i++)
+        if (usesExt)
+        {
+            foreach (var fe in Model.FacesExt!)
             {
-                int i0 = idx[0];
-                int i1 = idx[i];
-                int i2 = idx[i + 1];
+                var fv = fe.Vertices;
+                if (fv.Length < 3) continue;
 
-                var p0 = screen[i0];
-                var p1 = screen[i1];
-                var p2 = screen[i2];
+                // фан — триангуляция
+                for (int i = 1; i + 1 < fv.Length; i++)
+                {
+                    int v0 = fv[0].V;
+                    int v1 = fv[i].V;
+                    int v2 = fv[i + 1].V;
 
-                double z0 = ndc[i0].Z;
-                double z1 = ndc[i1].Z;
-                double z2 = ndc[i2].Z;
+                    var p0 = screen[v0];
+                    var p1 = screen[v1];
+                    var p2 = screen[v2];
 
-                var uv0 = Model.TextureCoords[i0];
-                var uv1 = Model.TextureCoords[i1];
-                var uv2 = Model.TextureCoords[i2];
+                    double z0 = ndc[v0].Z;
+                    double z1 = ndc[v1].Z;
+                    double z2 = ndc[v2].Z;
 
-                RasterizeTexturedTriangle(p0, p1, p2, z0, z1, z2, uv0, uv1, uv2, viewport);
+                    Vec2 uv0 = Model.TextureCoords![fv[0].VT];
+                    Vec2 uv1 = Model.TextureCoords![fv[i].VT];
+                    Vec2 uv2 = Model.TextureCoords![fv[i + 1].VT];
+
+                    RasterizeTexturedTriangle(p0, p1, p2, z0, z1, z2, uv0, uv1, uv2, viewport);
+                }
+            }
+        }
+        else
+        {
+
+            foreach (var face in Model.Faces)
+            {
+                var idx = face.Indices;
+                if (idx.Length < 3) continue;
+
+                for (int i = 1; i + 1 < idx.Length; i++)
+                {
+                    int i0 = idx[0];
+                    int i1 = idx[i];
+                    int i2 = idx[i + 1];
+
+                    var p0 = screen[i0];
+                    var p1 = screen[i1];
+                    var p2 = screen[i2];
+
+                    double z0 = ndc[i0].Z;
+                    double z1 = ndc[i1].Z;
+                    double z2 = ndc[i2].Z;
+
+                    var uv0 = Model.TextureCoords![i0];
+                    var uv1 = Model.TextureCoords![i1];
+                    var uv2 = Model.TextureCoords![i2];
+
+                    RasterizeTexturedTriangle(p0, p1, p2, z0, z1, z2, uv0, uv1, uv2, viewport);
+                }
             }
         }
 
         DisplayZBuffer(g, viewport);
     }
 
+
+
+
     private void RasterizeTexturedTriangle(Vec2 p0, Vec2 p1, Vec2 p2,
-                                         double z0, double z1, double z2,
-                                         Vec2 uv0, Vec2 uv1, Vec2 uv2,
-                                         Rectangle viewport)
+                                      double z0, double z1, double z2,
+                                      Vec2 uv0, Vec2 uv1, Vec2 uv2,
+                                      Rectangle viewport)
     {
         double minX = Math.Max(viewport.Left, Math.Min(p0.X, Math.Min(p1.X, p2.X)));
         double maxX = Math.Min(viewport.Right - 1, Math.Max(p0.X, Math.Max(p1.X, p2.X)));
@@ -932,17 +968,18 @@ public sealed class MeshRenderer
                 {
                     double z = w0 * z0 + w1 * z1 + w2 * z2;
 
-                    // ИНТЕРПОЛЯЦИЯ UV-КООРДИНАТ
-                    double u = w0 * uv0.X + w1 * uv1.X + w2 * uv2.X;
-                    double v = w0 * uv0.Y + w1 * uv1.Y + w2 * uv2.Y;
-
-                    if (x >= 0 && x < _zBuffer.GetLength(0) && y >= 0 && y < _zBuffer.GetLength(1))
+                    if (x >= 0 && x < _zBuffer.GetLength(0) &&
+                        y >= 0 && y < _zBuffer.GetLength(1))
                     {
                         if (z < _zBuffer[x, y])
                         {
                             _zBuffer[x, y] = z;
 
-                            // СЕМПЛИРОВАНИЕ ТЕКСТУРЫ
+                            double u = w0 * uv0.X + w1 * uv1.X + w2 * uv2.X;
+                            double v = w0 * uv0.Y + w1 * uv1.Y + w2 * uv2.Y;
+
+                            v = 1.0 - v;
+
                             Color texColor = UseBilinearFilter
                                 ? CurrentTexture.SampleBilinear(u, v)
                                 : CurrentTexture.Sample(u, v);
@@ -954,9 +991,11 @@ public sealed class MeshRenderer
             }
         }
     }
-	#endregion
-	
-	private static double EdgeFunction(Vec2 a, Vec2 b, Vec2 c)
+
+
+    #endregion
+
+    private static double EdgeFunction(Vec2 a, Vec2 b, Vec2 c)
 	{
 		return (b.X - a.X) * (c.Y - a.Y) - (b.Y - a.Y) * (c.X - a.X);
 	}

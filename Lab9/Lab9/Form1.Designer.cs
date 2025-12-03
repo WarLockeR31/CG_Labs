@@ -212,6 +212,7 @@
             tb_camPitch = new TrackBar();
             btn_renderMode = new Button();
             btn_lab8 = new Button();
+            btnLoadTexture = new Button();
             ((System.ComponentModel.ISupportInitialize)pb).BeginInit();
             ((System.ComponentModel.ISupportInitialize)tb_FOV).BeginInit();
             ((System.ComponentModel.ISupportInitialize)tb_Distance).BeginInit();
@@ -1200,12 +1201,13 @@
             // 
             // groupBox1
             // 
+            groupBox1.Controls.Add(btnLoadTexture);
             groupBox1.Controls.Add(btnToggleFiltering);
             groupBox1.Controls.Add(btnTextureChecker);
             groupBox1.Controls.Add(btnTextureGradient);
             groupBox1.Location = new Point(12, 245);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(137, 128);
+            groupBox1.Size = new Size(137, 177);
             groupBox1.TabIndex = 34;
             groupBox1.TabStop = false;
             groupBox1.Text = "Texture";
@@ -1439,6 +1441,16 @@
             btn_lab8.UseVisualStyleBackColor = false;
             btn_lab8.Click += btn_lab8_Click;
             // 
+            // btnLoadTexture
+            // 
+            btnLoadTexture.Location = new Point(6, 131);
+            btnLoadTexture.Name = "btnLoadTexture";
+            btnLoadTexture.Size = new Size(125, 29);
+            btnLoadTexture.TabIndex = 35;
+            btnLoadTexture.Text = "Load texture";
+            btnLoadTexture.UseVisualStyleBackColor = true;
+            btnLoadTexture.Click += btnLoadTexture_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -1541,5 +1553,6 @@
         private Button btnTextureChecker;
         private Button btnTextureGradient;
         private Button btnToggleFiltering;
+        private Button btnLoadTexture;
     }
 }
