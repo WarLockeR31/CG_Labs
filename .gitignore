@@ -88,6 +88,7 @@ StyleCopReport.xml
 *.meta
 *.obj
 !*model.obj
+!/Lab14/Lab14/Assets/*.obj
 *.idb
 *.iobj
 *.pch
