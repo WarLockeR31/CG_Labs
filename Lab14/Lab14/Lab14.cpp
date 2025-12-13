@@ -99,7 +99,7 @@ MeshData LoadObj(const std::string& path) {
             for (int i = 0; i < 3; i++) {
                 std::string vertexStr;
                 ss >> vertexStr;
-                
+
                 size_t slash1 = vertexStr.find('/');
                 size_t slash2 = vertexStr.find('/', slash1 + 1);
 
@@ -116,14 +116,16 @@ MeshData LoadObj(const std::string& path) {
                 if (!temp_uv.empty()) {
                     mesh.data.push_back(temp_uv[vtIdx * 2]);
                     mesh.data.push_back(1.0f - temp_uv[vtIdx * 2 + 1]);
-                } else { mesh.data.push_back(0); mesh.data.push_back(0); }
+                }
+                else { mesh.data.push_back(0); mesh.data.push_back(0); }
 
                 // Push Normal (3)
                 if (!temp_n.empty()) {
                     mesh.data.push_back(temp_n[vnIdx * 3]);
                     mesh.data.push_back(temp_n[vnIdx * 3 + 1]);
                     mesh.data.push_back(temp_n[vnIdx * 3 + 2]);
-                } else { mesh.data.insert(mesh.data.end(), {0, 1, 0}); }
+                }
+                else { mesh.data.insert(mesh.data.end(), { 0, 1, 0 }); }
 
                 mesh.vertexCount++;
             }
@@ -137,7 +139,7 @@ MeshData LoadObj(const std::string& path) {
 
 std::string LoadFile(const std::string& path) {
     std::ifstream file(path);
-    if (!file.is_open()) return ""; 
+    if (!file.is_open()) return "";
     std::stringstream buf; buf << file.rdbuf(); return buf.str();
 }
 
@@ -160,27 +162,89 @@ struct SceneObject {
 
 int main() {
     // SFML
-    sf::Window window(sf::VideoMode({ 1024, 768 }), "Lab 14: Lighting Control (WASD, Arrows, 1-2-3)");
+    sf::Window window(sf::VideoMode({ 1024, 768 }), "Lab 14: Lighting Control (WASD, Arrows, 1-2-3, P/T for Phong/Toon)");
     window.setVerticalSyncEnabled(true);
 
     glewExperimental = GL_TRUE; glewInit();
     glEnable(GL_DEPTH_TEST);
 
-    // Shaders
+    // Загружаем вершинный шейдер (общий для обеих моделей)
     std::string vCode = LoadFile("lighting.vert");
-    std::string fCode = LoadFile("lighting.frag");
-    const char* vSrc = vCode.c_str(); const char* fSrc = fCode.c_str();
+    if (vCode.empty()) {
+        std::cerr << "Failed to load lighting.vert" << std::endl;
+        return -1;
+    }
 
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER); glShaderSource(vs, 1, &vSrc, NULL); glCompileShader(vs); CheckShader(vs, "VS");
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER); glShaderSource(fs, 1, &fSrc, NULL); glCompileShader(fs); CheckShader(fs, "FS");
-    GLuint prog = glCreateProgram(); glAttachShader(prog, vs); glAttachShader(prog, fs); glLinkProgram(prog);
-    glDeleteShader(vs); glDeleteShader(fs);
+    // Загружаем фрагментные шейдеры
+    std::string phongFCode = LoadFile("lighting.frag");
+    std::string toonFCode = LoadFile("toon.frag");
+
+    if (phongFCode.empty() || toonFCode.empty()) {
+        std::cerr << "Failed to load fragment shaders" << std::endl;
+        return -1;
+    }
+
+    const char* vSrc = vCode.c_str();
+    const char* phongFSrc = phongFCode.c_str();
+    const char* toonFSrc = toonFCode.c_str();
+
+    // Компилируем вершинный шейдер
+    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vs, 1, &vSrc, NULL);
+    glCompileShader(vs);
+    CheckShader(vs, "Vertex Shader");
+
+    // Создаем программу для Phong освещения
+    GLuint phongFs = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(phongFs, 1, &phongFSrc, NULL);
+    glCompileShader(phongFs);
+    CheckShader(phongFs, "Phong FS");
+
+    GLuint phongProg = glCreateProgram();
+    glAttachShader(phongProg, vs);
+    glAttachShader(phongProg, phongFs);
+    glLinkProgram(phongProg);
+
+    GLint phongLinkSuccess;
+    glGetProgramiv(phongProg, GL_LINK_STATUS, &phongLinkSuccess);
+    if (!phongLinkSuccess) {
+        char info[512];
+        glGetProgramInfoLog(phongProg, 512, NULL, info);
+        std::cerr << "Phong Program Link Error: " << info << std::endl;
+    }
+
+    // Создаем программу для Toon освещения
+    GLuint toonFs = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(toonFs, 1, &toonFSrc, NULL);
+    glCompileShader(toonFs);
+    CheckShader(toonFs, "Toon FS");
+
+    GLuint toonProg = glCreateProgram();
+    glAttachShader(toonProg, vs);
+    glAttachShader(toonProg, toonFs);
+    glLinkProgram(toonProg);
+
+    GLint toonLinkSuccess;
+    glGetProgramiv(toonProg, GL_LINK_STATUS, &toonLinkSuccess);
+    if (!toonLinkSuccess) {
+        char info[512];
+        glGetProgramInfoLog(toonProg, 512, NULL, info);
+        std::cerr << "Toon Program Link Error: " << info << std::endl;
+    }
+
+    // Удаляем шейдеры, они больше не нужны
+    glDeleteShader(vs);
+    glDeleteShader(phongFs);
+    glDeleteShader(toonFs);
+
+    // Переменная для выбора модели освещения
+    int lightingModel = 0; // 0 - Phong, 1 - Toon
 
     // Load files
 #pragma region Load Files
     // ------------------------------------------------- Load Files -------------------------------------------------
     std::vector<SceneObject> objects;
-    
+
     struct ObjInfo { std::string name; float x, y, z; float s; float r; };
     std::vector<ObjInfo> sceneConfig = {
         {"Assets/house.obj",    0.0f, 0.0f, -10.0f,  3.0f, 0.0f}, // Текстура будет house.png
@@ -192,15 +256,15 @@ int main() {
 
     for (const auto& info : sceneConfig) {
         SceneObject obj;
-        
-        try { 
-            obj.mesh = LoadObj(info.name); 
+
+        try {
+            obj.mesh = LoadObj(info.name);
             std::cout << "Loaded mesh: " << info.name << std::endl;
-        } 
-        catch (...) { 
+        }
+        catch (...) {
             std::cerr << "Failed to load mesh: " << info.name << std::endl;
-            obj.mesh.data = { -1,-1,0, 0,0, 0,0,1,  1,-1,0, 1,0, 0,0,1,  0,1,0, 0.5,1, 0,0,1 }; 
-            obj.mesh.vertexCount = 3; 
+            obj.mesh.data = { -1,-1,0, 0,0, 0,0,1,  1,-1,0, 1,0, 0,0,1,  0,1,0, 0.5,1, 0,0,1 };
+            obj.mesh.vertexCount = 3;
         }
 
         std::string textureFile = info.name.substr(0, info.name.find_last_of('.')) + ".png";
@@ -211,18 +275,19 @@ int main() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        
-        sf::Image img; 
-        if(img.loadFromFile(textureFile)) {
+
+        sf::Image img;
+        if (img.loadFromFile(textureFile)) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.getSize().x, img.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img.getPixelsPtr());
             glGenerateMipmap(GL_TEXTURE_2D);
             std::cout << "Loaded texture: " << textureFile << std::endl;
-        } else {
+        }
+        else {
             std::cerr << "Failed to load texture: " << textureFile << std::endl;
             unsigned char white[] = { 255, 255, 255, 255 };
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, white);
         }
-        
+
         obj.x = info.x; obj.y = info.y; obj.z = info.z;
         obj.scale = info.s; obj.rotY = info.r;
         objects.push_back(obj);
@@ -232,14 +297,8 @@ int main() {
     GLuint VBO, VAO;
     glGenVertexArrays(1, &VAO); glGenBuffers(1, &VBO);
 
-    glUseProgram(prog);
-    GLint modelLoc = glGetUniformLocation(prog, "model");
-    GLint viewLoc = glGetUniformLocation(prog, "view");
-    GLint projLoc = glGetUniformLocation(prog, "projection");
-    GLint viewPosLoc = glGetUniformLocation(prog, "viewPos");
-
     float projection[16];
-    createPerspective(1.047f, 1024.0f/768.0f, 0.1f, 100.0f, projection);
+    createPerspective(1.047f, 1024.0f / 768.0f, 0.1f, 100.0f, projection);
 
     // Camera
     float viewTranslation[16], viewRotation[16], view[16];
@@ -250,11 +309,11 @@ int main() {
     // Light
     sf::Vector3f pointLightPos(0.0f, 3.0f, -6.0f);
     sf::Vector3f spotLightPos(0.0f, 2.0f, 0.0f);
-    
+
     bool isDirLightOn = true;
     bool isPointLightOn = true;
     bool isSpotLightOn = true;
-    
+
     sf::Clock deltaClock; // For smooth movement
 
     while (window.isOpen()) {
@@ -267,19 +326,29 @@ int main() {
                 glViewport(0, 0, resized->size.x, resized->size.y);
                 createPerspective(1.047f, (float)resized->size.x / resized->size.y, 0.1f, 100.0f, projection);
             }
-            
+
             // On/Off lights
             if (const auto* keyEvent = event->getIf<sf::Event::KeyPressed>()) {
                 if (keyEvent->code == sf::Keyboard::Key::Num1) isDirLightOn = !isDirLightOn;
                 if (keyEvent->code == sf::Keyboard::Key::Num2) isPointLightOn = !isPointLightOn;
                 if (keyEvent->code == sf::Keyboard::Key::Num3) isSpotLightOn = !isSpotLightOn;
+
+                // Переключение моделей освещения
+                if (keyEvent->code == sf::Keyboard::Key::P) {
+                    lightingModel = 0; // Phong
+                    std::cout << "Switched to Phong lighting" << std::endl;
+                }
+                if (keyEvent->code == sf::Keyboard::Key::T) {
+                    lightingModel = 1; // Toon
+                    std::cout << "Switched to Toon lighting" << std::endl;
+                }
             }
         }
 
         // Light controls
 #pragma region Light Controls
         // ------------------------------------------------- LIGHT CONTROLS -------------------------------------------------
-        
+
         // Spot
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) spotLightPos.z -= moveSpeed;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) spotLightPos.z += moveSpeed;
@@ -296,7 +365,15 @@ int main() {
         glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(prog);
+        // Выбираем текущую программу шейдеров
+        GLuint currentProgram = (lightingModel == 0) ? phongProg : toonProg;
+        glUseProgram(currentProgram);
+
+        // Получаем uniform-локации для текущей программы
+        GLint modelLoc = glGetUniformLocation(currentProgram, "model");
+        GLint viewLoc = glGetUniformLocation(currentProgram, "view");
+        GLint projLoc = glGetUniformLocation(currentProgram, "projection");
+        GLint viewPosLoc = glGetUniformLocation(currentProgram, "viewPos");
 
         // Light
 #pragma region Light
@@ -305,36 +382,41 @@ int main() {
         float dirIntensity = isDirLightOn ? 1.0f : 0.0f;
         float ambientCoefficient = 0.05f;
         float ambientIntensity = ambientCoefficient * dirIntensity;
-        glUniform3f(glGetUniformLocation(prog, "dirLight.direction"), 1.f, -1.0f, 0.f);
-        glUniform3f(glGetUniformLocation(prog, "dirLight.ambient"),  ambientIntensity, ambientIntensity, ambientIntensity);
-        glUniform3f(glGetUniformLocation(prog, "dirLight.diffuse"),  0.4f * dirIntensity, 0.4f * dirIntensity, 0.4f * dirIntensity);
-        glUniform3f(glGetUniformLocation(prog, "dirLight.specular"), 0.5f * dirIntensity, 0.5f * dirIntensity, 0.5f * dirIntensity);
+
+        // Универсальные имена uniform-переменных (одинаковые в обоих шейдерах)
+        glUniform3f(glGetUniformLocation(currentProgram, "dirLight.direction"), 1.f, -1.0f, 0.f);
+        glUniform3f(glGetUniformLocation(currentProgram, "dirLight.ambient"), ambientIntensity, ambientIntensity, ambientIntensity);
+        glUniform3f(glGetUniformLocation(currentProgram, "dirLight.diffuse"), 0.4f * dirIntensity, 0.4f * dirIntensity, 0.4f * dirIntensity);
+        glUniform3f(glGetUniformLocation(currentProgram, "dirLight.specular"), 0.5f * dirIntensity, 0.5f * dirIntensity, 0.5f * dirIntensity);
 
         // Point
         float pointIntensity = isPointLightOn ? 1.0f : 0.0f;
-        glUniform3f(glGetUniformLocation(prog, "pointLight.position"), pointLightPos.x, pointLightPos.y, pointLightPos.z);
-        glUniform3f(glGetUniformLocation(prog, "pointLight.ambient"),  0.05f * pointIntensity, 0.05f * pointIntensity, 0.05f * pointIntensity);
-        glUniform3f(glGetUniformLocation(prog, "pointLight.diffuse"),  0.8f * pointIntensity, 0.6f * pointIntensity, 0.4f * pointIntensity);
-        glUniform3f(glGetUniformLocation(prog, "pointLight.specular"), 1.0f * pointIntensity, 1.0f * pointIntensity, 1.0f * pointIntensity);
-        glUniform1f(glGetUniformLocation(prog, "pointLight.constant"), 1.0f);
-        glUniform1f(glGetUniformLocation(prog, "pointLight.linear"), 0.09f);
-        glUniform1f(glGetUniformLocation(prog, "pointLight.quadratic"), 0.032f);
+        glUniform3f(glGetUniformLocation(currentProgram, "pointLight.position"), pointLightPos.x, pointLightPos.y, pointLightPos.z);
+        glUniform3f(glGetUniformLocation(currentProgram, "pointLight.ambient"), 0.05f * pointIntensity, 0.05f * pointIntensity, 0.05f * pointIntensity);
+        glUniform3f(glGetUniformLocation(currentProgram, "pointLight.diffuse"), 0.8f * pointIntensity, 0.6f * pointIntensity, 0.4f * pointIntensity);
+        glUniform3f(glGetUniformLocation(currentProgram, "pointLight.specular"), 1.0f * pointIntensity, 1.0f * pointIntensity, 1.0f * pointIntensity);
+        glUniform1f(glGetUniformLocation(currentProgram, "pointLight.constant"), 1.0f);
+        glUniform1f(glGetUniformLocation(currentProgram, "pointLight.linear"), 0.09f);
+        glUniform1f(glGetUniformLocation(currentProgram, "pointLight.quadratic"), 0.032f);
 
         // Spot
         float spotIntensity = isSpotLightOn ? 1.0f : 0.0f;
-        glUniform3f(glGetUniformLocation(prog, "spotLight.position"), spotLightPos.x, spotLightPos.y, spotLightPos.z);
-        glUniform3f(glGetUniformLocation(prog, "spotLight.direction"), 0.0f, 0.0f, -1.0f); // Светит всегда "вглубь" сцены
-        glUniform3f(glGetUniformLocation(prog, "spotLight.ambient"),  0.0f, 0.0f, 0.0f);
-        glUniform3f(glGetUniformLocation(prog, "spotLight.diffuse"),  1.0f * spotIntensity, 1.0f * spotIntensity, 1.0f * spotIntensity);
-        glUniform3f(glGetUniformLocation(prog, "spotLight.specular"), 1.0f * spotIntensity, 1.0f * spotIntensity, 1.0f * spotIntensity);
-        glUniform1f(glGetUniformLocation(prog, "spotLight.constant"), 1.0f);
-        glUniform1f(glGetUniformLocation(prog, "spotLight.linear"), 0.09f);
-        glUniform1f(glGetUniformLocation(prog, "spotLight.quadratic"), 0.032f);
-        glUniform1f(glGetUniformLocation(prog, "spotLight.cutOff"), cos(15.5f * PI / 180.0f));
-        glUniform1f(glGetUniformLocation(prog, "spotLight.outerCutOff"), cos(20.5f * PI / 180.0f));
+        glUniform3f(glGetUniformLocation(currentProgram, "spotLight.position"), spotLightPos.x, spotLightPos.y, spotLightPos.z);
+        glUniform3f(glGetUniformLocation(currentProgram, "spotLight.direction"), 0.0f, 0.0f, -1.0f); // Светит всегда "вглубь" сцены
+        glUniform3f(glGetUniformLocation(currentProgram, "spotLight.ambient"), 0.0f, 0.0f, 0.0f);
+        glUniform3f(glGetUniformLocation(currentProgram, "spotLight.diffuse"), 1.0f * spotIntensity, 1.0f * spotIntensity, 1.0f * spotIntensity);
+        glUniform3f(glGetUniformLocation(currentProgram, "spotLight.specular"), 1.0f * spotIntensity, 1.0f * spotIntensity, 1.0f * spotIntensity);
+        glUniform1f(glGetUniformLocation(currentProgram, "spotLight.constant"), 1.0f);
+        glUniform1f(glGetUniformLocation(currentProgram, "spotLight.linear"), 0.09f);
+        glUniform1f(glGetUniformLocation(currentProgram, "spotLight.quadratic"), 0.032f);
+        glUniform1f(glGetUniformLocation(currentProgram, "spotLight.cutOff"), cos(15.5f * PI / 180.0f));
+        glUniform1f(glGetUniformLocation(currentProgram, "spotLight.outerCutOff"), cos(20.5f * PI / 180.0f));
 #pragma endregion
 
-        // Matrices
+        // Материал
+        glUniform1f(glGetUniformLocation(currentProgram, "material.shininess"), 32.0f);
+
+        // Матрицы
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view);
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, projection);
         glUniform3f(viewPosLoc, 0.0f, 6.0f, 12.0f);
@@ -351,21 +433,32 @@ int main() {
 
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, obj.textureID);
+            glUniform1i(glGetUniformLocation(currentProgram, "material.diffuse"), 0);
 
             float model[16], temp[16], trans[16], rot[16], sc[16];
             createTranslation(obj.x, obj.y, obj.z, trans);
             createRotationY(obj.rotY, rot);
             createScale(obj.scale, obj.scale, obj.scale, sc);
-            
+
             multiplyMatrices(rot, sc, temp);
             multiplyMatrices(trans, temp, model);
 
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model);
-            glUniform1f(glGetUniformLocation(prog, "material.shininess"), 32.0f);
 
             glDrawArrays(GL_TRIANGLES, 0, obj.mesh.vertexCount);
         }
         window.display();
     }
+
+    // Cleanup
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteProgram(phongProg);
+    glDeleteProgram(toonProg);
+
+    for (auto& obj : objects) {
+        glDeleteTextures(1, &obj.textureID);
+    }
+
     return 0;
 }
