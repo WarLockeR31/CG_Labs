@@ -8,9 +8,44 @@
 #include <vector>
 #include <cmath>
 #include <string>
+#include <optional> 
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 #pragma region MathHelpers
 // ----------------------------------------- Math helpers -----------------------------------------
+struct Vec3 {
+    float x, y, z;
+};
+
+Vec3 normalize(Vec3 v) {
+    float length = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+    if (length == 0) return { 0, 0, 0 };
+    return { v.x / length, v.y / length, v.z / length };
+}
+
+Vec3 cross(Vec3 a, Vec3 b) {
+    return {
+        a.y * b.z - a.z * b.y,
+        a.z * b.x - a.x * b.z,
+        a.x * b.y - a.y * b.x
+    };
+}
+
+Vec3 subtract(Vec3 a, Vec3 b) {
+    return { a.x - b.x, a.y - b.y, a.z - b.z };
+}
+
+Vec3 add(Vec3 a, Vec3 b) {
+    return { a.x + b.x, a.y + b.y, a.z + b.z };
+}
+
+Vec3 multiply(Vec3 v, float s) {
+    return { v.x * s, v.y * s, v.z * s };
+}
+
 void createPerspective(float fov, float aspect, float cnear, float cfar, float* matrix) {
     float tanHalfFov = tan(fov / 2.0f);
     std::fill_n(matrix, 16, 0.0f);
@@ -49,14 +84,6 @@ void createRotationY(float angle, float* matrix) {
     matrix[10] = cos(angle);
 }
 
-void createRotationZ(float angle, float* matrix) {
-    createIdentity(matrix);
-    matrix[0] = cos(angle);
-    matrix[1] = -sin(angle);
-    matrix[4] = sin(angle);
-    matrix[5] = cos(angle);
-}
-
 void multiplyMatrices(const float* a, const float* b, float* result) {
     float temp[16] = { 0 };
     for (int i = 0; i < 4; ++i) {
@@ -75,6 +102,21 @@ void createScale(float sx, float sy, float sz, float* matrix) {
     matrix[0] = sx;
     matrix[5] = sy;
     matrix[10] = sz;
+}
+
+void createLookAt(Vec3 eye, Vec3 center, Vec3 up, float* matrix) {
+    Vec3 f = normalize(subtract(center, eye)); // Forward
+    Vec3 s = normalize(cross(f, up));          // Right
+    Vec3 u = cross(s, f);                      // Up
+
+    createIdentity(matrix);
+    matrix[0] = s.x;  matrix[4] = s.y;  matrix[8] = s.z;
+    matrix[1] = u.x;  matrix[5] = u.y;  matrix[9] = u.z;
+    matrix[2] = -f.x; matrix[6] = -f.y; matrix[10] = -f.z;
+
+    matrix[12] = -(s.x * eye.x + s.y * eye.y + s.z * eye.z);
+    matrix[13] = -(u.x * eye.x + u.y * eye.y + u.z * eye.z);
+    matrix[14] = (f.x * eye.x + f.y * eye.y + f.z * eye.z);
 }
 #pragma endregion
 
@@ -141,8 +183,7 @@ MeshData LoadObj(const std::string& path) {
                     mesh.data.push_back(1.0f - temp_uvs[vtIdx * 2 + 1]);
                 }
                 else {
-                    mesh.data.push_back(0.0f);
-                    mesh.data.push_back(0.0f);
+                    mesh.data.push_back(0.0f); mesh.data.push_back(0.0f);
                 }
                 mesh.vertexCount++;
             }
@@ -196,6 +237,58 @@ struct CelestialBody {
     float orbitTilt;       // Наклон орбиты (для разнообразия)
 };
 
+struct Camera {
+    Vec3 position;
+    Vec3 front;
+    Vec3 up;
+    Vec3 right;
+    Vec3 worldUp;
+
+    float yaw;
+    float pitch;
+
+    float moveSpeed;
+    float mouseSensitivity;
+
+    Camera(Vec3 pos) {
+        position = pos;
+        worldUp = { 0.0f, 1.0f, 0.0f };
+        yaw = -90.0f; 
+        pitch = 0.0f;
+        moveSpeed = 10.0f;
+        mouseSensitivity = 0.1f;
+        updateVectors();
+    }
+
+    void updateVectors() {
+        Vec3 newFront;
+        newFront.x = cos(yaw * M_PI / 180.0f) * cos(pitch * M_PI / 180.0f);
+        newFront.y = sin(pitch * M_PI / 180.0f);
+        newFront.z = sin(yaw * M_PI / 180.0f) * cos(pitch * M_PI / 180.0f);
+        front = normalize(newFront);
+
+        right = normalize(cross(front, worldUp));
+        up = normalize(cross(right, front));
+    }
+
+    void processMouse(float xoffset, float yoffset) {
+        xoffset *= mouseSensitivity;
+        yoffset *= mouseSensitivity;
+
+        yaw += xoffset;
+        pitch -= yoffset; 
+
+        if (pitch > 89.0f) pitch = 89.0f;
+        if (pitch < -89.0f) pitch = -89.0f;
+
+        updateVectors();
+    }
+
+    void getViewMatrix(float* matrix) {
+        createLookAt(position, add(position, front), up, matrix);
+    }
+};
+
 int main()
 {
     // Window settings
@@ -214,7 +307,9 @@ int main()
         settings);
     window.setVerticalSyncEnabled(true);
 
-    // GLEW
+    window.setMouseCursorVisible(false);
+    bool mouseFocused = true; 
+
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
         std::cerr << "GLEW init failed\n";
@@ -256,7 +351,7 @@ int main()
         std::cout << "Model loaded: " << mesh.vertexCount << " vertices." << std::endl;
     }
     catch (const std::exception& e) {
-        std::cerr << "Error loading OBJ: " << e.what() << "\nMake sure 'model.obj' exists and is triangulated.\n";
+        std::cerr << "Error loading OBJ: " << e.what() << "\n";
         mesh.data = { -0.5f,-0.5f,0.0f, 0.0f,0.0f,  0.5f,-0.5f,0.0f, 1.0f,0.0f,  0.0f,0.5f,0.0f, 0.5f,1.0f };
         mesh.vertexCount = 3;
     }
@@ -295,12 +390,7 @@ int main()
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else {
-        std::cerr << "Failed to load texture.png. Using default color.\n";
-        // Создаем простую текстуру 2x2 пикселя
-        unsigned char defaultTexture[] = {
-            255, 0, 0, 255,   0, 255, 0, 255,
-            0, 0, 255, 255,   255, 255, 0, 255
-        };
+        unsigned char defaultTexture[] = { 255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 0, 255 };
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, defaultTexture);
     }
 
@@ -312,24 +402,22 @@ int main()
 
     // Projection matrix
     float projection[16];
-    createPerspective(1.047f, 800.0f / 600.0f, 0.1f, 100.0f, projection); // FOV 60 градусов
+    createPerspective(1.047f, 800.0f / 600.0f, 0.1f, 100.0f, projection);
 
-    // View matrix
-    float view[16];
-    createTranslation(0.0f, 0.0f, -15.0f, view);
+    Camera camera({ 0.0f, 5.0f, 20.0f });
 
     std::vector<CelestialBody> bodies(6);
-
-    bodies[0] = { 0.0f, 0.0f, 0.02f, 2.0f, 0.0f, 0.0f, 0.0f };
-
-    // Планеты с разными параметрами орбит
-    bodies[1] = { 3.0f, 0.4f, 0.05f, 0.4f, 0.0f, 0.0f, 0.1f };  // Ближайшая планета
-    bodies[2] = { 5.0f, 0.3f, 0.04f, 0.6f, 0.0f, 0.0f, 0.2f };  // Вторая планета
-    bodies[3] = { 7.0f, 0.25f, 0.03f, 0.5f, 0.0f, 0.0f, 0.15f }; // Третья планета
-    bodies[4] = { 9.0f, 0.2f, 0.02f, 0.7f, 0.0f, 0.0f, 0.25f };  // Четвертая планета
-    bodies[5] = { 12.0f, 0.15f, 0.01f, 0.8f, 0.0f, 0.0f, 0.3f }; // Пятая планета (дальняя)
+    bodies[0] = { 0.0f, 0.0f, 0.02f, 2.0f, 0.0f, 0.0f, 0.0f }; // Солнце
+    bodies[1] = { 3.0f, 0.4f, 0.05f, 0.4f, 0.0f, 0.0f, 0.1f };
+    bodies[2] = { 5.0f, 0.3f, 0.04f, 0.6f, 0.0f, 0.0f, 0.2f };
+    bodies[3] = { 7.0f, 0.25f, 0.03f, 0.5f, 0.0f, 0.0f, 0.15f };
+    bodies[4] = { 9.0f, 0.2f, 0.02f, 0.7f, 0.0f, 0.0f, 0.25f };
+    bodies[5] = { 12.0f, 0.15f, 0.01f, 0.8f, 0.0f, 0.0f, 0.3f };
 
     sf::Clock clock;
+
+    sf::Vector2i centerWindow(400, 300);
+    sf::Mouse::setPosition(centerWindow, window);
 
     while (window.isOpen())
     {
@@ -341,17 +429,52 @@ int main()
             if (const auto* resized = event->getIf<sf::Event::Resized>()) {
                 glViewport(0, 0, resized->size.x, resized->size.y);
                 createPerspective(1.047f, (float)resized->size.x / resized->size.y, 0.1f, 100.0f, projection);
+                centerWindow = { (int)resized->size.x / 2, (int)resized->size.y / 2 };
+            }
+            if (const auto* keyEvent = event->getIf<sf::Event::KeyPressed>()) {
+                if (keyEvent->code == sf::Keyboard::Key::Escape) {
+                    mouseFocused = !mouseFocused;
+                    window.setMouseCursorVisible(!mouseFocused);
+                }
             }
         }
 
         float deltaTime = clock.restart().asSeconds();
 
+        if (mouseFocused) {
+            float velocity = camera.moveSpeed * deltaTime;
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+                camera.position = add(camera.position, multiply(camera.front, velocity));
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
+                camera.position = subtract(camera.position, multiply(camera.front, velocity));
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+                camera.position = add(camera.position, multiply(camera.right, velocity));
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+                camera.position = subtract(camera.position, multiply(camera.right, velocity));
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
+                camera.position = add(camera.position, multiply(camera.worldUp, velocity)); 
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift))
+                camera.position = subtract(camera.position, multiply(camera.worldUp, velocity));
+
+            sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+            float xOffset = (float)(mousePos.x - centerWindow.x);
+            float yOffset = (float)(mousePos.y - centerWindow.y);
+
+            if (window.hasFocus()) {
+                sf::Mouse::setPosition(centerWindow, window);
+                camera.processMouse(xOffset, yOffset);
+            }
+        }
+
         for (auto& body : bodies) {
             body.orbitAngle += body.orbitSpeed * deltaTime;
             body.rotationAngle += body.rotationSpeed * deltaTime;
 
-            if (body.orbitAngle > 2 * 3.14159265f) body.orbitAngle -= 2 * 3.14159265f;
-            if (body.rotationAngle > 2 * 3.14159265f) body.rotationAngle -= 2 * 3.14159265f;
+            if (body.orbitAngle > 2 * M_PI) body.orbitAngle -= 2 * M_PI;
+            if (body.rotationAngle > 2 * M_PI) body.rotationAngle -= 2 * M_PI;
         }
 
         glClearColor(0.0f, 0.0f, 0.1f, 1.0f);
@@ -359,12 +482,14 @@ int main()
 
         glUseProgram(program);
 
-        // Texture
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureID);
         glUniform1i(texLoc, 0);
 
-        // Projection & View
+        // --- CAMERA UPDATE: Получаем матрицу вида из камеры ---
+        float view[16];
+        camera.getViewMatrix(view);
+
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, projection);
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view);
 
