@@ -65,7 +65,7 @@ void multiplyMatrices(const float* a, const float* b, float* result) {
 #pragma region Obj Loader
 
 struct MeshData {
-    std::vector<float> data; // x, y, z, u, v, nx, ny, nz
+    std::vector<float> data;
     int vertexCount;
 };
 
@@ -161,116 +161,79 @@ struct SceneObject {
 };
 
 int main() {
-    // SFML
-    sf::Window window(sf::VideoMode({ 1024, 768 }), "Lab 14: Lighting Control (WASD, Arrows, 1-2-3, P/T for Phong/Toon)");
+    // Обновили заголовок окна
+    sf::Window window(sf::VideoMode({ 1024, 768 }), "Lab 14: P-Phong, T-Toon, M-Minnaert (Velvet)");
     window.setVerticalSyncEnabled(true);
 
     glewExperimental = GL_TRUE; glewInit();
     glEnable(GL_DEPTH_TEST);
 
-    // Загружаем вершинный шейдер (общий для обеих моделей)
+    // Загружаем исходники всех шейдеров
     std::string vCode = LoadFile("lighting.vert");
-    if (vCode.empty()) {
-        std::cerr << "Failed to load lighting.vert" << std::endl;
-        return -1;
-    }
-
-    // Загружаем фрагментные шейдеры
     std::string phongFCode = LoadFile("lighting.frag");
     std::string toonFCode = LoadFile("toon.frag");
+    // !!! НОВЫЙ КОД: Загружаем шейдер Миннарта !!!
+    std::string minnaertFCode = LoadFile("minnaert.frag");
 
-    if (phongFCode.empty() || toonFCode.empty()) {
-        std::cerr << "Failed to load fragment shaders" << std::endl;
+    // Проверка, что файл найден
+    if (vCode.empty() || phongFCode.empty() || toonFCode.empty() || minnaertFCode.empty()) {
+        std::cerr << "Failed to load shaders. Ensure lighting.vert, lighting.frag, toon.frag, minnaert.frag exist." << std::endl;
         return -1;
     }
 
     const char* vSrc = vCode.c_str();
     const char* phongFSrc = phongFCode.c_str();
     const char* toonFSrc = toonFCode.c_str();
+    const char* minnaertFSrc = minnaertFCode.c_str();
 
-    // Компилируем вершинный шейдер
+    // Компиляция Вершинного шейдера (он общий для всех)
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &vSrc, NULL);
-    glCompileShader(vs);
-    CheckShader(vs, "Vertex Shader");
+    glShaderSource(vs, 1, &vSrc, NULL); glCompileShader(vs); CheckShader(vs, "Vertex Shader");
 
-    // Создаем программу для Phong освещения
+    // 1. Программа Phong
     GLuint phongFs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(phongFs, 1, &phongFSrc, NULL);
-    glCompileShader(phongFs);
-    CheckShader(phongFs, "Phong FS");
-
+    glShaderSource(phongFs, 1, &phongFSrc, NULL); glCompileShader(phongFs); CheckShader(phongFs, "Phong FS");
     GLuint phongProg = glCreateProgram();
-    glAttachShader(phongProg, vs);
-    glAttachShader(phongProg, phongFs);
-    glLinkProgram(phongProg);
+    glAttachShader(phongProg, vs); glAttachShader(phongProg, phongFs); glLinkProgram(phongProg);
 
-    GLint phongLinkSuccess;
-    glGetProgramiv(phongProg, GL_LINK_STATUS, &phongLinkSuccess);
-    if (!phongLinkSuccess) {
-        char info[512];
-        glGetProgramInfoLog(phongProg, 512, NULL, info);
-        std::cerr << "Phong Program Link Error: " << info << std::endl;
-    }
-
-    // Создаем программу для Toon освещения
+    // 2. Программа Toon
     GLuint toonFs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(toonFs, 1, &toonFSrc, NULL);
-    glCompileShader(toonFs);
-    CheckShader(toonFs, "Toon FS");
-
+    glShaderSource(toonFs, 1, &toonFSrc, NULL); glCompileShader(toonFs); CheckShader(toonFs, "Toon FS");
     GLuint toonProg = glCreateProgram();
-    glAttachShader(toonProg, vs);
-    glAttachShader(toonProg, toonFs);
-    glLinkProgram(toonProg);
+    glAttachShader(toonProg, vs); glAttachShader(toonProg, toonFs); glLinkProgram(toonProg);
 
-    GLint toonLinkSuccess;
-    glGetProgramiv(toonProg, GL_LINK_STATUS, &toonLinkSuccess);
-    if (!toonLinkSuccess) {
-        char info[512];
-        glGetProgramInfoLog(toonProg, 512, NULL, info);
-        std::cerr << "Toon Program Link Error: " << info << std::endl;
-    }
+    GLuint minnaertFs = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(minnaertFs, 1, &minnaertFSrc, NULL); glCompileShader(minnaertFs); CheckShader(minnaertFs, "Minnaert FS");
+    GLuint minnaertProg = glCreateProgram();
+    glAttachShader(minnaertProg, vs); glAttachShader(minnaertProg, minnaertFs); glLinkProgram(minnaertProg);
 
-    // Удаляем шейдеры, они больше не нужны
-    glDeleteShader(vs);
-    glDeleteShader(phongFs);
-    glDeleteShader(toonFs);
+    // Удаляем шейдеры (они уже слинкованы в программы)
+    glDeleteShader(vs); glDeleteShader(phongFs); glDeleteShader(toonFs); glDeleteShader(minnaertFs);
 
-    // Переменная для выбора модели освещения
-    int lightingModel = 0; // 0 - Phong, 1 - Toon
+    // Переменная режима: 0 - Phong, 1 - Toon, 2 - Minnaert
+    int lightingModel = 0;
 
-    // Load files
-#pragma region Load Files
-    // ------------------------------------------------- Load Files -------------------------------------------------
+    // Загрузка объектов сцены
     std::vector<SceneObject> objects;
-
     struct ObjInfo { std::string name; float x, y, z; float s; float r; };
     std::vector<ObjInfo> sceneConfig = {
-        {"Assets/house.obj",    0.0f, 0.0f, -10.0f,  3.0f, 0.0f}, // Текстура будет house.png
-        {"Assets/couch.obj",    0.0f, 0.0f, -5.0f,   1.2f, 0.0f}, // Текстура будет couch.png
-        {"Assets/tvTable.obj", -3.0f, 0.0f, -8.0f,   1.0f, 0.5f}, // Текстура будет tvTable.png
-        {"Assets/TV.obj",      -3.0f, 0.5f, -8.0f,   1.0f, 0.5f}, // Текстура будет TV.png
-        {"Assets/freezer.obj",  -1.0f, 0.0f, -8.0f,   0.5f, -0.5f} // Текстура будет freezer.png
+        {"Assets/house.obj",    0.0f, 0.0f, -10.0f,  3.0f, 0.0f},
+        {"Assets/couch.obj",    0.0f, 0.0f, -5.0f,   1.2f, 0.0f},
+        {"Assets/tvTable.obj", -3.0f, 0.0f, -8.0f,   1.0f, 0.5f},
+        {"Assets/TV.obj",      -3.0f, 0.5f, -8.0f,   1.0f, 0.5f},
+        {"Assets/freezer.obj",  -1.0f, 0.0f, -8.0f,   0.5f, -0.5f}
     };
 
     for (const auto& info : sceneConfig) {
         SceneObject obj;
-
-        try {
-            obj.mesh = LoadObj(info.name);
-            std::cout << "Loaded mesh: " << info.name << std::endl;
-        }
+        try { obj.mesh = LoadObj(info.name); }
         catch (...) {
-            std::cerr << "Failed to load mesh: " << info.name << std::endl;
-            obj.mesh.data = { -1,-1,0, 0,0, 0,0,1,  1,-1,0, 1,0, 0,0,1,  0,1,0, 0.5,1, 0,0,1 };
-            obj.mesh.vertexCount = 3;
+            // Заглушка (треугольник), если модель не найдена
+            obj.mesh.data = { -1,-1,0, 0,0, 0,0,1,  1,-1,0, 1,0, 0,0,1,  0,1,0, 0.5,1, 0,0,1 }; obj.mesh.vertexCount = 3;
         }
-
         std::string textureFile = info.name.substr(0, info.name.find_last_of('.')) + ".png";
 
-        glGenTextures(1, &obj.textureID);
-        glBindTexture(GL_TEXTURE_2D, obj.textureID);
+        glGenTextures(1, &obj.textureID); glBindTexture(GL_TEXTURE_2D, obj.textureID);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -280,41 +243,28 @@ int main() {
         if (img.loadFromFile(textureFile)) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.getSize().x, img.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img.getPixelsPtr());
             glGenerateMipmap(GL_TEXTURE_2D);
-            std::cout << "Loaded texture: " << textureFile << std::endl;
         }
         else {
-            std::cerr << "Failed to load texture: " << textureFile << std::endl;
             unsigned char white[] = { 255, 255, 255, 255 };
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, white);
         }
-
-        obj.x = info.x; obj.y = info.y; obj.z = info.z;
-        obj.scale = info.s; obj.rotY = info.r;
+        obj.x = info.x; obj.y = info.y; obj.z = info.z; obj.scale = info.s; obj.rotY = info.r;
         objects.push_back(obj);
     }
-#pragma endregion 
 
     GLuint VBO, VAO;
     glGenVertexArrays(1, &VAO); glGenBuffers(1, &VBO);
+    float projection[16]; createPerspective(1.047f, 1024.0f / 768.0f, 0.1f, 100.0f, projection);
 
-    float projection[16];
-    createPerspective(1.047f, 1024.0f / 768.0f, 0.1f, 100.0f, projection);
-
-    // Camera
     float viewTranslation[16], viewRotation[16], view[16];
     createTranslation(0.0f, -6.0f, -12.0f, viewTranslation);
     createRotationX(-25.0f * PI / 180.0f, viewRotation);
     multiplyMatrices(viewRotation, viewTranslation, view);
 
-    // Light
     sf::Vector3f pointLightPos(0.0f, 3.0f, -6.0f);
     sf::Vector3f spotLightPos(0.0f, 2.0f, 0.0f);
-
-    bool isDirLightOn = true;
-    bool isPointLightOn = true;
-    bool isSpotLightOn = true;
-
-    sf::Clock deltaClock; // For smooth movement
+    bool isDirLightOn = true, isPointLightOn = true, isSpotLightOn = true;
+    sf::Clock deltaClock;
 
     while (window.isOpen()) {
         float deltaTime = deltaClock.restart().asSeconds();
@@ -322,100 +272,78 @@ int main() {
 
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) window.close();
-            if (const auto* resized = event->getIf<sf::Event::Resized>()) {
-                glViewport(0, 0, resized->size.x, resized->size.y);
-                createPerspective(1.047f, (float)resized->size.x / resized->size.y, 0.1f, 100.0f, projection);
+            if (const auto* r = event->getIf<sf::Event::Resized>()) {
+                glViewport(0, 0, r->size.x, r->size.y);
+                createPerspective(1.047f, (float)r->size.x / r->size.y, 0.1f, 100.0f, projection);
             }
+            if (const auto* k = event->getIf<sf::Event::KeyPressed>()) {
+                if (k->code == sf::Keyboard::Key::Num1) isDirLightOn = !isDirLightOn;
+                if (k->code == sf::Keyboard::Key::Num2) isPointLightOn = !isPointLightOn;
+                if (k->code == sf::Keyboard::Key::Num3) isSpotLightOn = !isSpotLightOn;
 
-            // On/Off lights
-            if (const auto* keyEvent = event->getIf<sf::Event::KeyPressed>()) {
-                if (keyEvent->code == sf::Keyboard::Key::Num1) isDirLightOn = !isDirLightOn;
-                if (keyEvent->code == sf::Keyboard::Key::Num2) isPointLightOn = !isPointLightOn;
-                if (keyEvent->code == sf::Keyboard::Key::Num3) isSpotLightOn = !isSpotLightOn;
-
-                // Переключение моделей освещения
-                if (keyEvent->code == sf::Keyboard::Key::P) {
-                    lightingModel = 0; // Phong
-                    std::cout << "Switched to Phong lighting" << std::endl;
-                }
-                if (keyEvent->code == sf::Keyboard::Key::T) {
-                    lightingModel = 1; // Toon
-                    std::cout << "Switched to Toon lighting" << std::endl;
-                }
+                // Переключение моделей
+                if (k->code == sf::Keyboard::Key::P) { lightingModel = 0; std::cout << "Model: Phong\n"; }
+                if (k->code == sf::Keyboard::Key::T) { lightingModel = 1; std::cout << "Model: Toon\n"; }
+                // !!! НОВЫЙ КОД: Переключение на Minnaert !!!
+                if (k->code == sf::Keyboard::Key::M) { lightingModel = 2; std::cout << "Model: Minnaert\n"; }
             }
         }
 
-        // Light controls
-#pragma region Light Controls
-        // ------------------------------------------------- LIGHT CONTROLS -------------------------------------------------
-
-        // Spot
+        // Управление светом
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) spotLightPos.z -= moveSpeed;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) spotLightPos.z += moveSpeed;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) spotLightPos.x -= moveSpeed;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) spotLightPos.x += moveSpeed;
-
-        // Point
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))    pointLightPos.z -= moveSpeed;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))  pointLightPos.z += moveSpeed;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))  pointLightPos.x -= moveSpeed;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) pointLightPos.x += moveSpeed;
-#pragma endregion
 
         glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Выбираем текущую программу шейдеров
-        GLuint currentProgram = (lightingModel == 0) ? phongProg : toonProg;
+        // !!! НОВЫЙ КОД: Выбор программы !!!
+        GLuint currentProgram = phongProg;
+        if (lightingModel == 1) currentProgram = toonProg;
+        if (lightingModel == 2) currentProgram = minnaertProg;
+
         glUseProgram(currentProgram);
 
-        // Получаем uniform-локации для текущей программы
         GLint modelLoc = glGetUniformLocation(currentProgram, "model");
         GLint viewLoc = glGetUniformLocation(currentProgram, "view");
         GLint projLoc = glGetUniformLocation(currentProgram, "projection");
         GLint viewPosLoc = glGetUniformLocation(currentProgram, "viewPos");
 
-        // Light
-#pragma region Light
-        // ------------------------------------------------- LIGHT -------------------------------------------------
-        // Direct
-        float dirIntensity = isDirLightOn ? 1.0f : 0.0f;
-        float ambientCoefficient = 0.05f;
-        float ambientIntensity = ambientCoefficient * dirIntensity;
-
-        // Универсальные имена uniform-переменных (одинаковые в обоих шейдерах)
+        // Uniforms (параметры света)
+        float dirInt = isDirLightOn ? 1.0f : 0.0f;
         glUniform3f(glGetUniformLocation(currentProgram, "dirLight.direction"), 1.f, -1.0f, 0.f);
-        glUniform3f(glGetUniformLocation(currentProgram, "dirLight.ambient"), ambientIntensity, ambientIntensity, ambientIntensity);
-        glUniform3f(glGetUniformLocation(currentProgram, "dirLight.diffuse"), 0.4f * dirIntensity, 0.4f * dirIntensity, 0.4f * dirIntensity);
-        glUniform3f(glGetUniformLocation(currentProgram, "dirLight.specular"), 0.5f * dirIntensity, 0.5f * dirIntensity, 0.5f * dirIntensity);
+        glUniform3f(glGetUniformLocation(currentProgram, "dirLight.ambient"), 0.05f * dirInt, 0.05f * dirInt, 0.05f * dirInt);
+        glUniform3f(glGetUniformLocation(currentProgram, "dirLight.diffuse"), 0.4f * dirInt, 0.4f * dirInt, 0.4f * dirInt);
+        glUniform3f(glGetUniformLocation(currentProgram, "dirLight.specular"), 0.5f * dirInt, 0.5f * dirInt, 0.5f * dirInt);
 
-        // Point
-        float pointIntensity = isPointLightOn ? 1.0f : 0.0f;
+        float pInt = isPointLightOn ? 1.0f : 0.0f;
         glUniform3f(glGetUniformLocation(currentProgram, "pointLight.position"), pointLightPos.x, pointLightPos.y, pointLightPos.z);
-        glUniform3f(glGetUniformLocation(currentProgram, "pointLight.ambient"), 0.05f * pointIntensity, 0.05f * pointIntensity, 0.05f * pointIntensity);
-        glUniform3f(glGetUniformLocation(currentProgram, "pointLight.diffuse"), 0.8f * pointIntensity, 0.6f * pointIntensity, 0.4f * pointIntensity);
-        glUniform3f(glGetUniformLocation(currentProgram, "pointLight.specular"), 1.0f * pointIntensity, 1.0f * pointIntensity, 1.0f * pointIntensity);
+        glUniform3f(glGetUniformLocation(currentProgram, "pointLight.ambient"), 0.05f * pInt, 0.05f * pInt, 0.05f * pInt);
+        glUniform3f(glGetUniformLocation(currentProgram, "pointLight.diffuse"), 0.8f * pInt, 0.6f * pInt, 0.4f * pInt);
+        glUniform3f(glGetUniformLocation(currentProgram, "pointLight.specular"), 1.0f * pInt, 1.0f * pInt, 1.0f * pInt);
         glUniform1f(glGetUniformLocation(currentProgram, "pointLight.constant"), 1.0f);
         glUniform1f(glGetUniformLocation(currentProgram, "pointLight.linear"), 0.09f);
         glUniform1f(glGetUniformLocation(currentProgram, "pointLight.quadratic"), 0.032f);
 
-        // Spot
-        float spotIntensity = isSpotLightOn ? 1.0f : 0.0f;
+        float sInt = isSpotLightOn ? 1.0f : 0.0f;
         glUniform3f(glGetUniformLocation(currentProgram, "spotLight.position"), spotLightPos.x, spotLightPos.y, spotLightPos.z);
-        glUniform3f(glGetUniformLocation(currentProgram, "spotLight.direction"), 0.0f, 0.0f, -1.0f); // Светит всегда "вглубь" сцены
+        glUniform3f(glGetUniformLocation(currentProgram, "spotLight.direction"), 0.0f, 0.0f, -1.0f);
         glUniform3f(glGetUniformLocation(currentProgram, "spotLight.ambient"), 0.0f, 0.0f, 0.0f);
-        glUniform3f(glGetUniformLocation(currentProgram, "spotLight.diffuse"), 1.0f * spotIntensity, 1.0f * spotIntensity, 1.0f * spotIntensity);
-        glUniform3f(glGetUniformLocation(currentProgram, "spotLight.specular"), 1.0f * spotIntensity, 1.0f * spotIntensity, 1.0f * spotIntensity);
+        glUniform3f(glGetUniformLocation(currentProgram, "spotLight.diffuse"), 1.0f * sInt, 1.0f * sInt, 1.0f * sInt);
+        glUniform3f(glGetUniformLocation(currentProgram, "spotLight.specular"), 1.0f * sInt, 1.0f * sInt, 1.0f * sInt);
         glUniform1f(glGetUniformLocation(currentProgram, "spotLight.constant"), 1.0f);
         glUniform1f(glGetUniformLocation(currentProgram, "spotLight.linear"), 0.09f);
         glUniform1f(glGetUniformLocation(currentProgram, "spotLight.quadratic"), 0.032f);
         glUniform1f(glGetUniformLocation(currentProgram, "spotLight.cutOff"), cos(15.5f * PI / 180.0f));
         glUniform1f(glGetUniformLocation(currentProgram, "spotLight.outerCutOff"), cos(20.5f * PI / 180.0f));
-#pragma endregion
 
         // Материал
         glUniform1f(glGetUniformLocation(currentProgram, "material.shininess"), 32.0f);
-
         // Матрицы
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view);
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, projection);
@@ -423,42 +351,25 @@ int main() {
 
         // Draw
         for (auto& obj : objects) {
-            glBindVertexArray(VAO);
-            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBindVertexArray(VAO); glBindBuffer(GL_ARRAY_BUFFER, VBO);
             glBufferData(GL_ARRAY_BUFFER, obj.mesh.data.size() * sizeof(float), obj.mesh.data.data(), GL_STATIC_DRAW);
-
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); glEnableVertexAttribArray(0);
             glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); glEnableVertexAttribArray(1);
             glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float))); glEnableVertexAttribArray(2);
 
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, obj.textureID);
+            glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, obj.textureID);
             glUniform1i(glGetUniformLocation(currentProgram, "material.diffuse"), 0);
 
             float model[16], temp[16], trans[16], rot[16], sc[16];
             createTranslation(obj.x, obj.y, obj.z, trans);
             createRotationY(obj.rotY, rot);
             createScale(obj.scale, obj.scale, obj.scale, sc);
-
-            multiplyMatrices(rot, sc, temp);
-            multiplyMatrices(trans, temp, model);
-
+            multiplyMatrices(rot, sc, temp); multiplyMatrices(trans, temp, model);
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model);
 
             glDrawArrays(GL_TRIANGLES, 0, obj.mesh.vertexCount);
         }
         window.display();
     }
-
-    // Cleanup
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteProgram(phongProg);
-    glDeleteProgram(toonProg);
-
-    for (auto& obj : objects) {
-        glDeleteTextures(1, &obj.textureID);
-    }
-
     return 0;
 }
