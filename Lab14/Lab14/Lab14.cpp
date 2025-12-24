@@ -107,19 +107,16 @@ MeshData LoadObj(const std::string& path) {
                 int vtIdx = std::stoi(vertexStr.substr(slash1 + 1, slash2 - slash1 - 1)) - 1;
                 int vnIdx = std::stoi(vertexStr.substr(slash2 + 1)) - 1;
 
-                // Push Pos (3)
                 mesh.data.push_back(temp_v[vIdx * 3]);
                 mesh.data.push_back(temp_v[vIdx * 3 + 1]);
                 mesh.data.push_back(temp_v[vIdx * 3 + 2]);
 
-                // Push UV (2)
                 if (!temp_uv.empty()) {
                     mesh.data.push_back(temp_uv[vtIdx * 2]);
                     mesh.data.push_back(1.0f - temp_uv[vtIdx * 2 + 1]);
                 }
                 else { mesh.data.push_back(0); mesh.data.push_back(0); }
 
-                // Push Normal (3)
                 if (!temp_n.empty()) {
                     mesh.data.push_back(temp_n[vnIdx * 3]);
                     mesh.data.push_back(temp_n[vnIdx * 3 + 1]);
@@ -161,21 +158,17 @@ struct SceneObject {
 };
 
 int main() {
-    // Обновили заголовок окна
     sf::Window window(sf::VideoMode({ 1024, 768 }), "Lab 14: P-Phong, T-Toon, M-Minnaert (Velvet)");
     window.setVerticalSyncEnabled(true);
 
     glewExperimental = GL_TRUE; glewInit();
     glEnable(GL_DEPTH_TEST);
 
-    // Загружаем исходники всех шейдеров
     std::string vCode = LoadFile("lighting.vert");
     std::string phongFCode = LoadFile("lighting.frag");
     std::string toonFCode = LoadFile("toon.frag");
-    // !!! НОВЫЙ КОД: Загружаем шейдер Миннарта !!!
     std::string minnaertFCode = LoadFile("minnaert.frag");
 
-    // Проверка, что файл найден
     if (vCode.empty() || phongFCode.empty() || toonFCode.empty() || minnaertFCode.empty()) {
         std::cerr << "Failed to load shaders. Ensure lighting.vert, lighting.frag, toon.frag, minnaert.frag exist." << std::endl;
         return -1;
@@ -186,17 +179,14 @@ int main() {
     const char* toonFSrc = toonFCode.c_str();
     const char* minnaertFSrc = minnaertFCode.c_str();
 
-    // Компиляция Вершинного шейдера (он общий для всех)
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vs, 1, &vSrc, NULL); glCompileShader(vs); CheckShader(vs, "Vertex Shader");
 
-    // 1. Программа Phong
     GLuint phongFs = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(phongFs, 1, &phongFSrc, NULL); glCompileShader(phongFs); CheckShader(phongFs, "Phong FS");
     GLuint phongProg = glCreateProgram();
     glAttachShader(phongProg, vs); glAttachShader(phongProg, phongFs); glLinkProgram(phongProg);
 
-    // 2. Программа Toon
     GLuint toonFs = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(toonFs, 1, &toonFSrc, NULL); glCompileShader(toonFs); CheckShader(toonFs, "Toon FS");
     GLuint toonProg = glCreateProgram();
@@ -207,13 +197,11 @@ int main() {
     GLuint minnaertProg = glCreateProgram();
     glAttachShader(minnaertProg, vs); glAttachShader(minnaertProg, minnaertFs); glLinkProgram(minnaertProg);
 
-    // Удаляем шейдеры (они уже слинкованы в программы)
     glDeleteShader(vs); glDeleteShader(phongFs); glDeleteShader(toonFs); glDeleteShader(minnaertFs);
 
     // Переменная режима: 0 - Phong, 1 - Toon, 2 - Minnaert
     int lightingModel = 0;
 
-    // Загрузка объектов сцены
     std::vector<SceneObject> objects;
     struct ObjInfo { std::string name; float x, y, z; float s; float r; };
     std::vector<ObjInfo> sceneConfig = {
@@ -228,7 +216,6 @@ int main() {
         SceneObject obj;
         try { obj.mesh = LoadObj(info.name); }
         catch (...) {
-            // Заглушка (треугольник), если модель не найдена
             obj.mesh.data = { -1,-1,0, 0,0, 0,0,1,  1,-1,0, 1,0, 0,0,1,  0,1,0, 0.5,1, 0,0,1 }; obj.mesh.vertexCount = 3;
         }
         std::string textureFile = info.name.substr(0, info.name.find_last_of('.')) + ".png";
@@ -281,10 +268,8 @@ int main() {
                 if (k->code == sf::Keyboard::Key::Num2) isPointLightOn = !isPointLightOn;
                 if (k->code == sf::Keyboard::Key::Num3) isSpotLightOn = !isSpotLightOn;
 
-                // Переключение моделей
                 if (k->code == sf::Keyboard::Key::P) { lightingModel = 0; std::cout << "Model: Phong\n"; }
                 if (k->code == sf::Keyboard::Key::T) { lightingModel = 1; std::cout << "Model: Toon\n"; }
-                // !!! НОВЫЙ КОД: Переключение на Minnaert !!!
                 if (k->code == sf::Keyboard::Key::M) { lightingModel = 2; std::cout << "Model: Minnaert\n"; }
             }
         }
@@ -302,7 +287,6 @@ int main() {
         glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // !!! НОВЫЙ КОД: Выбор программы !!!
         GLuint currentProgram = phongProg;
         if (lightingModel == 1) currentProgram = toonProg;
         if (lightingModel == 2) currentProgram = minnaertProg;
@@ -314,7 +298,6 @@ int main() {
         GLint projLoc = glGetUniformLocation(currentProgram, "projection");
         GLint viewPosLoc = glGetUniformLocation(currentProgram, "viewPos");
 
-        // Uniforms (параметры света)
         float dirInt = isDirLightOn ? 1.0f : 0.0f;
         glUniform3f(glGetUniformLocation(currentProgram, "dirLight.direction"), 1.f, -1.0f, 0.f);
         glUniform3f(glGetUniformLocation(currentProgram, "dirLight.ambient"), 0.05f * dirInt, 0.05f * dirInt, 0.05f * dirInt);
@@ -342,14 +325,11 @@ int main() {
         glUniform1f(glGetUniformLocation(currentProgram, "spotLight.cutOff"), cos(15.5f * PI / 180.0f));
         glUniform1f(glGetUniformLocation(currentProgram, "spotLight.outerCutOff"), cos(20.5f * PI / 180.0f));
 
-        // Материал
         glUniform1f(glGetUniformLocation(currentProgram, "material.shininess"), 32.0f);
-        // Матрицы
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view);
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, projection);
         glUniform3f(viewPosLoc, 0.0f, 6.0f, 12.0f);
 
-        // Draw
         for (auto& obj : objects) {
             glBindVertexArray(VAO); glBindBuffer(GL_ARRAY_BUFFER, VBO);
             glBufferData(GL_ARRAY_BUFFER, obj.mesh.data.size() * sizeof(float), obj.mesh.data.data(), GL_STATIC_DRAW);

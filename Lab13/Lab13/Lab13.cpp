@@ -486,7 +486,6 @@ int main()
         glBindTexture(GL_TEXTURE_2D, textureID);
         glUniform1i(texLoc, 0);
 
-        // --- CAMERA UPDATE: Получаем матрицу вида из камеры ---
         float view[16];
         camera.getViewMatrix(view);
 
